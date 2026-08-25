@@ -38,7 +38,7 @@
   border: 1.5px solid var(--borda);
   border-radius: 10px;
   padding: 0 14px;
-  font-size: 14px;
+  font-size: 16px;
   background: var(--branco);
   margin-bottom: 14px;
 }
@@ -182,7 +182,7 @@
   border: 1.5px solid var(--borda);
   border-radius: 10px;
   padding: 0 12px;
-  font-size: 14.5px;
+  font-size: 16px;
   background: var(--branco);
   color: var(--texto-principal);
   font-family: inherit;
@@ -212,7 +212,12 @@
 
 .linha-eixo select {
   flex: 1;
-  height: 40px;
+  height: 42px;
+  font-size: 16px;
+  border: 1.5px solid var(--borda);
+  border-radius: 8px;
+  padding: 0 8px;
+  background: var(--branco);
 }
 
 .botao-remover-eixo {

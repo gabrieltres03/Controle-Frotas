@@ -20,7 +20,9 @@ function digitarPin(numero) {
   atualizarPontosPin();
 
   if (pinDigitado.length === 6) {
-    setTimeout(verificarLogin, 150);
+    document.getElementById("mensagemErro").style.color = "var(--texto-secundario)";
+    document.getElementById("mensagemErro").textContent = "Entrando...";
+    verificarLogin();
   }
 }
 
@@ -38,7 +40,9 @@ function atualizarPontosPin() {
 }
 
 function mostrarErroPin(mensagem) {
-  document.getElementById("mensagemErro").textContent = mensagem;
+  const elementoErro = document.getElementById("mensagemErro");
+  elementoErro.style.color = "var(--erro)";
+  elementoErro.textContent = mensagem;
   const pontos = document.getElementById("pinPontos");
   pontos.classList.add("erro");
   setTimeout(() => pontos.classList.remove("erro"), 300);

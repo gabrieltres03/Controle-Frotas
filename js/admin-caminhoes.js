@@ -79,11 +79,47 @@ function adicionarEixo(tipo, classificacao) {
         <option value="apoio">Apoio</option>
       </select>
     </div>
-    <button class="botao-remover-eixo" onclick="this.parentElement.remove()">&times;</button>
+    <button class="botao-remover-eixo" onclick="this.parentElement.remove(); atualizarPreviewMapa();">&times;</button>
   `;
   if (classificacao) linha.querySelector(".grupo-config").value = classificacao;
   if (tipo) linha.querySelector(".eixo-tipo").value = tipo;
+  linha.querySelector(".grupo-config").addEventListener("change", atualizarPreviewMapa);
+  linha.querySelector(".eixo-tipo").addEventListener("change", atualizarPreviewMapa);
   container.appendChild(linha);
+  atualizarPreviewMapa();
+}
+
+function rotuloTipoPreview(tipo) {
+  return { direcao: "Direção", tracao: "Tração", suspenso: "Suspenso", apoio: "Apoio" }[tipo] || tipo;
+}
+
+function atualizarPreviewMapa() {
+  const container = document.getElementById("previewMapa");
+  const grupos = Array.from(document.querySelectorAll("#listaEixos .linha-eixo"));
+
+  if (grupos.length === 0) {
+    container.innerHTML = '<p class="vazio" style="padding:16px 0">Adicione eixos pra ver o mapa</p>';
+    return;
+  }
+
+  let numero = 1;
+  let html = "";
+  grupos.forEach((linha) => {
+    const classificacao = linha.querySelector(".grupo-config").value;
+    const tipo = linha.querySelector(".eixo-tipo").value;
+    CONFIGURACOES_EIXO[classificacao].rodados.forEach((rodado) => {
+      const n = numero++;
+      const posicoes = rodado === "duplo" ? ["Esq. ext", "Esq. int", "Dir. int", "Dir. ext"] : ["Esquerdo", "Direito"];
+      html += `
+        <div class="cartao-eixo" style="padding:10px 12px; margin-bottom:0">
+          <div class="cartao-eixo-titulo" style="margin-bottom:6px">Eixo ${n} · ${rotuloTipoPreview(tipo)} · rodado ${rodado}</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap">
+            ${posicoes.map((p) => `<span class="selo selo-neutro">${p}</span>`).join("")}
+          </div>
+        </div>`;
+    });
+  });
+  container.innerHTML = html;
 }
 
 function lerEixosDoFormulario() {

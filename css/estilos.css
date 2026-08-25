@@ -33,7 +33,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 20px 24px;
+  padding: 22px 20px 18px;
   max-width: 420px;
   width: 100%;
   margin: 0 auto;
@@ -43,24 +43,24 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 28px;
+  gap: 4px;
+  margin-bottom: 20px;
 }
 
-.marca svg {
-  width: 68px;
-  height: 68px;
+.marca svg, .marca img {
+  width: 52px;
+  height: 52px;
 }
 
 .marca-nome {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--azul-escuro);
   letter-spacing: 0.2px;
 }
 
 .marca-produto {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--texto-secundario);
 }
 
@@ -72,16 +72,16 @@ body {
   gap: 4px;
   width: 100%;
   box-shadow: var(--sombra);
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .aba-perfil {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 11px 0;
+  padding: 10px 0;
   border-radius: 9px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--texto-secundario);
   transition: background 0.15s, color 0.15s;
@@ -112,7 +112,7 @@ body {
   border: 1.5px solid var(--borda);
   border-radius: 10px;
   padding: 0 14px;
-  font-size: 15px;
+  font-size: 16px;
   background: var(--branco);
   color: var(--texto-principal);
 }
@@ -166,11 +166,11 @@ body {
 }
 
 .tecla {
-  height: 60px;
+  height: 52px;
   border: none;
   border-radius: 14px;
   background: var(--branco);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 500;
   color: var(--texto-principal);
   box-shadow: var(--sombra);
