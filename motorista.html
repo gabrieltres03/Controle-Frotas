@@ -50,6 +50,10 @@
         <label for="campoValor">Valor pago (R$)</label>
         <input type="text" inputmode="decimal" id="campoValor" placeholder="0,00" />
       </div>
+      <div class="campo">
+        <label for="campoFotoNota">Foto da nota</label>
+        <input type="file" accept="image/*" capture="environment" id="campoFotoNota" />
+      </div>
       <button class="botao-primario" style="width:100%" onclick="lancarAbastecimento()">Lançar abastecimento</button>
       <p class="mensagem-erro" id="mensagemAbastecimento"></p>
     </section>

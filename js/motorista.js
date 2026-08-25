@@ -93,9 +93,20 @@ async function lancarAbastecimento() {
   const litros = Number(document.getElementById("campoLitros").value);
   const kmAtual = lerNumeroBR(document.getElementById("campoKmAtual").value);
   const valor = lerNumeroBR(document.getElementById("campoValor").value);
+  const arquivoNota = document.getElementById("campoFotoNota").files[0];
 
-  if (!litros || !kmAtual) {
-    document.getElementById("mensagemAbastecimento").textContent = "Preencha litros e KM.";
+  if (!litros || !kmAtual || !arquivoNota) {
+    document.getElementById("mensagemAbastecimento").textContent = "Preencha litros, KM e anexe a foto da nota.";
+    return;
+  }
+
+  document.getElementById("mensagemAbastecimento").textContent = "Processando a foto...";
+
+  let notaPdf;
+  try {
+    notaPdf = await gerarTicketEmPdf(arquivoNota);
+  } catch (erro) {
+    document.getElementById("mensagemAbastecimento").textContent = "Erro na foto: " + erro.message;
     return;
   }
 
@@ -105,6 +116,8 @@ async function lancarAbastecimento() {
     litros,
     km_atual: kmAtual,
     valor: valor || 0,
+    nota_pdf: notaPdf,
+    foto_tirada_em: new Date().toISOString(),
     criado_localmente_em: new Date().toISOString(),
   };
 
@@ -139,6 +152,7 @@ function limparFormularioAbastecimento(mensagem) {
   document.getElementById("campoLitros").value = "";
   document.getElementById("campoKmAtual").value = "";
   document.getElementById("campoValor").value = "";
+  document.getElementById("campoFotoNota").value = "";
   document.getElementById("mensagemAbastecimento").textContent = mensagem;
 }
 
@@ -211,6 +225,7 @@ async function lancarDespesaAlimentacao() {
       local,
       valor,
       ticket_pdf: ticketPdf,
+      foto_tirada_em: new Date().toISOString(),
       motorista_id: motoristaId,
       caminhao: caminhaoVinculado,
       data: firebase.firestore.FieldValue.serverTimestamp(),
@@ -240,6 +255,8 @@ async function sincronizarFila() {
         litros: registro.litros,
         km_atual: registro.km_atual,
         valor: registro.valor,
+        nota_pdf: registro.nota_pdf,
+        foto_tirada_em: registro.foto_tirada_em,
         media,
         data: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -274,12 +291,14 @@ function carregarHistorico() {
             const a = doc.data();
             const data = a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "agora";
             const media = a.media ? `${a.media.toFixed(2)} km/L` : "sem média anterior";
+            const horaFoto = a.foto_tirada_em ? new Date(a.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
                   <span class="item-lista-titulo">${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
-                  <span class="item-lista-sub">${data} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}</span>
+                  <span class="item-lista-sub">${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}</span>
                 </div>
+                ${a.nota_pdf ? `<a href="${a.nota_pdf}" download="nota-${doc.id}.pdf" style="font-size:12px; color:var(--azul-medio); text-decoration:underline; white-space:nowrap; padding-left:8px">ver nota</a>` : ""}
               </div>`;
           })
           .join("");
@@ -310,11 +329,12 @@ function carregarDespesas() {
           .map((doc) => {
             const d = doc.data();
             const data = d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "agora";
+            const horaFoto = d.foto_tirada_em ? new Date(d.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
                   <span class="item-lista-titulo">${rotuloRefeicao(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}</span>
-                  <span class="item-lista-sub">${d.restaurante} · ${d.local} · ${data}</span>
+                  <span class="item-lista-sub">${d.restaurante} · ${d.local} · ${data}${horaFoto ? " às " + horaFoto : ""}</span>
                 </div>
                 <a href="${d.ticket_pdf}" download="ticket-${doc.id}.pdf" style="font-size:12px; color:var(--azul-medio); text-decoration:underline; white-space:nowrap; padding-left:8px">ver ticket</a>
               </div>`;
