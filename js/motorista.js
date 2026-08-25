@@ -19,6 +19,7 @@ auth.onAuthStateChanged(async (usuario) => {
   ativarCapitalizacaoAutomatica(document.getElementById("campoLocalRefeicao"));
   await carregarPerfil();
   atualizarBadgePendentes();
+  if (navigator.onLine) sincronizarFila();
 });
 
 async function carregarPerfil() {
@@ -57,8 +58,14 @@ function lerFila() {
   return JSON.parse(localStorage.getItem(CHAVE_FILA_OFFLINE) || "[]");
 }
 function gravarFila(fila) {
-  localStorage.setItem(CHAVE_FILA_OFFLINE, JSON.stringify(fila));
+  try {
+    localStorage.setItem(CHAVE_FILA_OFFLINE, JSON.stringify(fila));
+    return true;
+  } catch (erro) {
+    return false;
+  }
 }
+let sincronizando = false;
 function atualizarBadgePendentes() {
   const fila = lerFila();
   const badge = document.getElementById("badgePendentes");
@@ -139,9 +146,14 @@ async function lancarAbastecimento() {
     if (semConexaoDeVerdade) {
       const fila = lerFila();
       fila.push(registro);
-      gravarFila(fila);
+      const salvouOffline = gravarFila(fila);
       atualizarBadgePendentes();
-      limparFormularioAbastecimento("Sem conexão — salvo no aparelho, sincroniza sozinho quando voltar a internet.");
+      if (salvouOffline) {
+        limparFormularioAbastecimento("Sem conexão — salvo no aparelho, sincroniza sozinho quando voltar a internet.");
+      } else {
+        document.getElementById("mensagemAbastecimento").textContent =
+          "Sem conexão e sem espaço de armazenamento no aparelho pra guardar offline. Sincroniza os pendentes primeiro ou tenta com internet.";
+      }
     } else {
       document.getElementById("mensagemAbastecimento").textContent = "Erro ao salvar: " + erro.message;
     }
@@ -242,32 +254,38 @@ async function lancarDespesaAlimentacao() {
 }
 
 async function sincronizarFila() {
-  const fila = lerFila();
-  if (fila.length === 0) return;
+  if (sincronizando) return;
+  sincronizando = true;
+  try {
+    const fila = lerFila();
+    if (fila.length === 0) return;
 
-  const restantes = [];
-  for (const registro of fila) {
-    try {
-      const media = await calcularMedia(registro.caminhao, registro.km_atual);
-      await db.collection("abastecimentos").add({
-        caminhao: registro.caminhao,
-        motorista_id: registro.motorista_id,
-        litros: registro.litros,
-        km_atual: registro.km_atual,
-        valor: registro.valor,
-        nota_pdf: registro.nota_pdf,
-        foto_tirada_em: registro.foto_tirada_em,
-        media,
-        data: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-      await db.collection("caminhoes").doc(registro.caminhao).update({ km_atual: registro.km_atual });
-    } catch (erro) {
-      restantes.push(registro);
+    const restantes = [];
+    for (const registro of fila) {
+      try {
+        const media = await calcularMedia(registro.caminhao, registro.km_atual);
+        await db.collection("abastecimentos").add({
+          caminhao: registro.caminhao,
+          motorista_id: registro.motorista_id,
+          litros: registro.litros,
+          km_atual: registro.km_atual,
+          valor: registro.valor,
+          nota_pdf: registro.nota_pdf,
+          foto_tirada_em: registro.foto_tirada_em,
+          media,
+          data: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        await db.collection("caminhoes").doc(registro.caminhao).update({ km_atual: registro.km_atual });
+      } catch (erro) {
+        restantes.push(registro);
+      }
     }
+    gravarFila(restantes);
+    atualizarBadgePendentes();
+    carregarHistorico();
+  } finally {
+    sincronizando = false;
   }
-  gravarFila(restantes);
-  atualizarBadgePendentes();
-  carregarHistorico();
 }
 
 window.addEventListener("online", sincronizarFila);

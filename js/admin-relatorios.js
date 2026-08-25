@@ -72,25 +72,10 @@ function renderizarResumo() {
     return;
   }
 
-  const totalLitros = abastecimentosFiltrados.reduce((s, a) => s + (a.litros || 0), 0);
-  const totalValor = abastecimentosFiltrados.reduce((s, a) => s + (a.valor || 0), 0);
-  const mediaGeral = abastecimentosFiltrados.length
-    ? abastecimentosFiltrados.reduce((s, a) => s + (a.media || 0), 0) / abastecimentosFiltrados.length
-    : 0;
-
   container.innerHTML = `
-    <div class="item-lista" style="box-shadow:none; border:1.5px solid var(--borda); margin-bottom:14px">
-      <div class="item-lista-info">
-        <span class="item-lista-titulo">${abastecimentosFiltrados.length} abastecimentos no período</span>
-        <span class="item-lista-sub">${totalLitros.toLocaleString("pt-BR")} L · R$ ${totalValor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} · média ${mediaGeral.toFixed(2)} km/L</span>
-      </div>
-    </div>
-    <div class="item-lista" style="box-shadow:none; border:1.5px solid var(--borda)">
-      <div class="item-lista-info">
-        <span class="item-lista-titulo">${pneusSnapshot.length} pneus no filtro atual</span>
-        <span class="item-lista-sub">${pneusSnapshot.filter((p) => p.status === "em_uso").length} em uso · ${pneusSnapshot.filter((p) => p.status === "estoque").length} em estoque · ${pneusSnapshot.filter((p) => p.status === "descartado").length} descartados</span>
-      </div>
-    </div>
+    <p style="font-size:13.5px; color:var(--texto-secundario); text-align:center; margin-bottom:4px">
+      ${abastecimentosFiltrados.length} abastecimento${abastecimentosFiltrados.length !== 1 ? "s" : ""} e ${pneusSnapshot.length} pneu${pneusSnapshot.length !== 1 ? "s" : ""} encontrados — pronto pra exportar.
+    </p>
   `;
 
   document.getElementById("acoesExportar").style.display = "flex";
