@@ -188,6 +188,7 @@ async function instalarPneu(chave) {
     codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
     marca: lote.marca || "",
     tipo_pneu: lote.tipo_pneu || "",
+    custo_unitario: lote.custo_unitario || 0,
     status: "em_uso",
     caminhao_atual: caminhaoAtual.placa,
     posicao: chave,

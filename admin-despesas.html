@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Despesas | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <a class="botao-voltar" href="admin.html">‹</a>
+    <span class="topo-titulo">Despesas</span>
+  </header>
+
+  <main class="conteudo-admin">
+    <div class="campo">
+      <label for="filtroMotoristaDespesas">Motorista</label>
+      <select id="filtroMotoristaDespesas"><option value="">Todos</option></select>
+    </div>
+    <div class="campo">
+      <label for="filtroCaminhaoDespesas">Caminhão</label>
+      <select id="filtroCaminhaoDespesas"><option value="">Todos</option></select>
+    </div>
+    <div class="campo">
+      <label for="filtroDataInicio">De</label>
+      <input type="date" id="filtroDataInicio" />
+    </div>
+    <div class="campo">
+      <label for="filtroDataFim">Até</label>
+      <input type="date" id="filtroDataFim" />
+    </div>
+    <button class="botao-primario" style="width:100%; margin-bottom:20px" onclick="filtrarDespesas()">Filtrar</button>
+
+    <div style="font-size:13.5px; font-weight:600; color:var(--texto-principal); margin-bottom:8px">Abastecimentos</div>
+    <div class="lista-itens" id="listaAbastecimentosAdmin" style="margin-bottom:24px">
+      <p class="vazio">Escolha os filtros e toque em Filtrar.</p>
+    </div>
+
+    <div style="font-size:13.5px; font-weight:600; color:var(--texto-principal); margin-bottom:8px">Despesas de alimentação</div>
+    <div class="lista-itens" id="listaDespesasAdmin">
+      <p class="vazio">Escolha os filtros e toque em Filtrar.</p>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-despesas.js"></script>
+</body>
+</html>

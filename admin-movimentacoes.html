@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Entradas e Saídas | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <a class="botao-voltar" href="admin.html">‹</a>
+    <span class="topo-titulo">Entradas e Saídas</span>
+  </header>
+
+  <main class="conteudo-admin">
+    <div class="campo">
+      <label for="filtroTipoItem">Mostrar</label>
+      <select id="filtroTipoItem">
+        <option value="">Pneus e ferramentas</option>
+        <option value="pneu">Só pneus</option>
+        <option value="ferramenta">Só ferramentas</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="dataInicioMov">De</label>
+      <input type="date" id="dataInicioMov" />
+    </div>
+    <div class="campo">
+      <label for="dataFimMov">Até</label>
+      <input type="date" id="dataFimMov" />
+    </div>
+    <button class="botao-primario" style="width:100%; margin-bottom:20px" onclick="gerarMovimentacoes()">Buscar</button>
+
+    <div id="resumoMovimentacoes"></div>
+
+    <div id="acoesExportarMov" style="display:none; gap:10px; margin-bottom:20px">
+      <button class="botao-linha" style="flex:1" onclick="exportarExcelMov()">Exportar Excel</button>
+      <button class="botao-linha" style="flex:1" onclick="exportarPdfMov()">Exportar PDF</button>
+    </div>
+
+    <div style="font-size:13.5px; font-weight:600; color:var(--texto-principal); margin-bottom:8px">Entradas (compras)</div>
+    <div class="lista-itens" id="listaEntradas" style="margin-bottom:24px">
+      <p class="vazio">Escolha o período e toque em Buscar.</p>
+    </div>
+
+    <div style="font-size:13.5px; font-weight:600; color:var(--texto-principal); margin-bottom:8px">Saídas (instalado / perdido / removido)</div>
+    <div class="lista-itens" id="listaSaidas">
+      <p class="vazio">Escolha o período e toque em Buscar.</p>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-movimentacoes.js"></script>
+</body>
+</html>

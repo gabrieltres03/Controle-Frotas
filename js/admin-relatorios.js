@@ -1,4 +1,5 @@
 let abastecimentosFiltrados = [];
+let despesasFiltradas = [];
 let pneusSnapshot = [];
 
 db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot((snapshot) => {
@@ -39,7 +40,7 @@ async function gerarRelatorio() {
   const motoristaFiltro = document.getElementById("filtroMotorista").value;
 
   if (!dataInicio || !dataFim) {
-    alert("Escolha o período (de / até)");
+    avisar("Atenção", "Escolha o período (de / até)");
     return;
   }
 
@@ -55,6 +56,16 @@ async function gerarRelatorio() {
     .map((d) => ({ id: d.id, ...d.data() }))
     .filter((a) => (!caminhaoFiltro || a.caminhao === caminhaoFiltro) && (!motoristaFiltro || a.motorista_id === motoristaFiltro));
 
+  const despesasSnapshot = await db
+    .collection("despesas")
+    .where("data", ">=", inicioDoDia(dataInicio))
+    .where("data", "<=", fimDoDia(dataFim))
+    .get();
+
+  despesasFiltradas = despesasSnapshot.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((d) => (!caminhaoFiltro || d.caminhao === caminhaoFiltro) && (!motoristaFiltro || d.motorista_id === motoristaFiltro));
+
   const pneusQuery = await db.collection("itens").where("tipo", "==", "pneu").get();
   pneusSnapshot = pneusQuery.docs
     .map((d) => ({ id: d.id, ...d.data() }))
@@ -66,7 +77,7 @@ async function gerarRelatorio() {
 function renderizarResumo() {
   const container = document.getElementById("resumoRelatorio");
 
-  if (abastecimentosFiltrados.length === 0 && pneusSnapshot.length === 0) {
+  if (abastecimentosFiltrados.length === 0 && despesasFiltradas.length === 0 && pneusSnapshot.length === 0) {
     container.innerHTML = '<p class="vazio">Nada encontrado nesse período/filtro.</p>';
     document.getElementById("acoesExportar").style.display = "none";
     return;
@@ -74,7 +85,7 @@ function renderizarResumo() {
 
   container.innerHTML = `
     <p style="font-size:13.5px; color:var(--texto-secundario); text-align:center; margin-bottom:4px">
-      ${abastecimentosFiltrados.length} abastecimento${abastecimentosFiltrados.length !== 1 ? "s" : ""} e ${pneusSnapshot.length} pneu${pneusSnapshot.length !== 1 ? "s" : ""} encontrados — pronto pra exportar.
+      ${abastecimentosFiltrados.length} abastecimento${abastecimentosFiltrados.length !== 1 ? "s" : ""}, ${despesasFiltradas.length} despesa${despesasFiltradas.length !== 1 ? "s" : ""} e ${pneusSnapshot.length} pneu${pneusSnapshot.length !== 1 ? "s" : ""} encontrados — pronto pra exportar.
     </p>
   `;
 
@@ -103,9 +114,26 @@ function montarLinhasPneus() {
   }));
 }
 
+function montarLinhasDespesas() {
+  return despesasFiltradas.map((d) => ({
+    Data: d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "",
+    Caminhão: d.caminhao || "",
+    Motorista: d.motorista_id || "",
+    Refeição: rotuloRefeicaoRelatorio(d.refeicao),
+    Restaurante: d.restaurante || "",
+    Local: d.local || "",
+    "Valor (R$)": d.valor || 0,
+  }));
+}
+
+function rotuloRefeicaoRelatorio(r) {
+  return { almoco: "Almoço", janta: "Janta", lanche: "Lanche" }[r] || r || "";
+}
+
 function exportarExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(montarLinhasAbastecimento()), "Abastecimentos");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(montarLinhasDespesas()), "Despesas");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(montarLinhasPneus()), "Pneus");
   XLSX.writeFile(wb, `relatorio-frota-${document.getElementById("dataInicio").value}-a-${document.getElementById("dataFim").value}.xlsx`);
 }
@@ -127,7 +155,18 @@ function exportarPdf() {
     headStyles: { fillColor: [12, 112, 188] },
   });
 
-  const proximaY = doc.lastAutoTable.finalY + 12;
+  let proximaY = doc.lastAutoTable.finalY + 12;
+  doc.setFontSize(12);
+  doc.text("Despesas de alimentação", 14, proximaY);
+  doc.autoTable({
+    startY: proximaY + 4,
+    head: [["Data", "Caminhão", "Motorista", "Refeição", "Restaurante", "Local", "Valor (R$)"]],
+    body: montarLinhasDespesas().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Refeição, l.Restaurante, l.Local, l["Valor (R$)"]]),
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [12, 112, 188] },
+  });
+
+  proximaY = doc.lastAutoTable.finalY + 12;
   doc.setFontSize(12);
   doc.text("Pneus", 14, proximaY);
   doc.autoTable({

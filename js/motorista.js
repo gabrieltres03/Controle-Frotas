@@ -292,6 +292,8 @@ window.addEventListener("online", sincronizarFila);
 
 // ---------- histórico ----------
 
+let cachePdfHistorico = {};
+
 function carregarHistorico() {
   db.collection("abastecimentos")
     .where("motorista_id", "==", motoristaId)
@@ -307,6 +309,7 @@ function carregarHistorico() {
         container.innerHTML = snapshot.docs
           .map((doc) => {
             const a = doc.data();
+            cachePdfHistorico[doc.id] = a.nota_pdf;
             const data = a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "agora";
             const media = a.media ? `${a.media.toFixed(2)} km/L` : "sem média anterior";
             const horaFoto = a.foto_tirada_em ? new Date(a.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
@@ -316,7 +319,7 @@ function carregarHistorico() {
                   <span class="item-lista-titulo">${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
                   <span class="item-lista-sub">${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}</span>
                 </div>
-                ${a.nota_pdf ? `<a href="${a.nota_pdf}" download="nota-${doc.id}.pdf" style="font-size:12px; color:var(--azul-medio); text-decoration:underline; white-space:nowrap; padding-left:8px">ver nota</a>` : ""}
+                ${a.nota_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfHistorico['${doc.id}'], 'nota-${doc.id}.pdf')">ver nota</button>` : ""}
               </div>`;
           })
           .join("");
@@ -330,6 +333,8 @@ function carregarHistorico() {
 function rotuloRefeicao(refeicao) {
   return { almoco: "Almoço", janta: "Janta", lanche: "Lanche" }[refeicao] || refeicao;
 }
+
+let cachePdfDespesas = {};
 
 function carregarDespesas() {
   db.collection("despesas")
@@ -346,6 +351,7 @@ function carregarDespesas() {
         container.innerHTML = snapshot.docs
           .map((doc) => {
             const d = doc.data();
+            cachePdfDespesas[doc.id] = d.ticket_pdf;
             const data = d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "agora";
             const horaFoto = d.foto_tirada_em ? new Date(d.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
             return `
@@ -354,7 +360,7 @@ function carregarDespesas() {
                   <span class="item-lista-titulo">${rotuloRefeicao(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}</span>
                   <span class="item-lista-sub">${d.restaurante} · ${d.local} · ${data}${horaFoto ? " às " + horaFoto : ""}</span>
                 </div>
-                <a href="${d.ticket_pdf}" download="ticket-${doc.id}.pdf" style="font-size:12px; color:var(--azul-medio); text-decoration:underline; white-space:nowrap; padding-left:8px">ver ticket</a>
+                <button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfDespesas['${doc.id}'], 'ticket-${doc.id}.pdf')">ver ticket</button>
               </div>`;
           })
           .join("");
@@ -522,6 +528,7 @@ async function instalarComoMotorista(chave) {
     codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
     marca: lote.marca || "",
     tipo_pneu: lote.tipo_pneu || "",
+    custo_unitario: lote.custo_unitario || 0,
     status: "em_uso",
     caminhao_atual: caminhaoVinculado,
     posicao: chave,
@@ -559,6 +566,7 @@ async function trocarPorEstepe(chave) {
     codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
     marca: lote.marca || "",
     tipo_pneu: lote.tipo_pneu || "",
+    custo_unitario: lote.custo_unitario || 0,
     status: "em_uso",
     caminhao_atual: caminhaoVinculado,
     posicao: chave,

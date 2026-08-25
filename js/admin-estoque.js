@@ -4,6 +4,7 @@ let abaAtiva = "pneu";
 ativarMaiusculasAutomaticas(document.getElementById("campoCodigo"));
 ativarCapitalizacaoAutomatica(document.getElementById("campoMarca"));
 ativarCapitalizacaoAutomatica(document.getElementById("campoObs"));
+ativarMascaraNumerica(document.getElementById("campoCusto"));
 
 document.getElementById("campoTipo").addEventListener("change", (e) => {
   const ehPneu = e.target.value === "pneu";
@@ -40,11 +41,12 @@ function renderizarLista() {
   container.innerHTML = filtrados
     .map((i) => {
       const detalhe = i.tipo === "pneu" ? `${i.marca || "sem marca"} · ${rotuloTipoPneu(i.tipo_pneu)}` : i.observacoes || "—";
+      const custo = i.custo_unitario ? ` · R$ ${Number(i.custo_unitario).toFixed(2)}/un` : "";
       return `
         <div class="item-lista">
           <div class="item-lista-info">
             <span class="item-lista-titulo">${i.codigo}</span>
-            <span class="item-lista-sub">${detalhe} · ${i.quantidade ?? 1} disponível${(i.quantidade ?? 1) > 1 ? "eis" : ""}</span>
+            <span class="item-lista-sub">${detalhe}${custo} · ${i.quantidade ?? 1} disponível${(i.quantidade ?? 1) > 1 ? "eis" : ""}</span>
           </div>
           <button class="botao-perigo" style="height:36px; padding:0 12px; font-size:12px" onclick="removerDoEstoque('${i.id}')">Remover</button>
         </div>`;
@@ -65,6 +67,7 @@ function abrirFormulario() {
   document.getElementById("campoTipo").dispatchEvent(new Event("change"));
   document.getElementById("campoCodigo").value = "";
   document.getElementById("campoQuantidade").value = 1;
+  document.getElementById("campoCusto").value = "";
   document.getElementById("campoMarca").value = "";
   document.getElementById("campoObs").value = "";
   document.getElementById("folhaItem").classList.add("aberta");
@@ -78,6 +81,7 @@ async function salvarItem() {
   const tipo = document.getElementById("campoTipo").value;
   const codigo = document.getElementById("campoCodigo").value.trim();
   const quantidade = Number(document.getElementById("campoQuantidade").value) || 1;
+  const custoUnitario = lerNumeroBR(document.getElementById("campoCusto").value);
   const marca = document.getElementById("campoMarca").value.trim();
   const tipoPneu = document.getElementById("campoTipoRodagem").value;
   const observacoes = document.getElementById("campoObs").value.trim();
@@ -91,6 +95,7 @@ async function salvarItem() {
     tipo,
     codigo,
     quantidade,
+    custo_unitario: custoUnitario,
     status: "estoque",
     caminhao_atual: null,
     posicao: null,

@@ -78,6 +78,29 @@ function avisar(titulo, mensagem) {
   overlay.classList.add("aberta");
 }
 
+function abrirPdfBase64(dataUri, nomeArquivo) {
+  try {
+    const base64 = dataUri.split(",")[1];
+    const binario = atob(base64);
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    if (nomeArquivo) link.download = nomeArquivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (erro) {
+    avisar("Erro ao abrir o PDF", erro.message);
+  }
+}
+
 function gerarSufixoUnico() {
   return Date.now().toString(36).slice(-4).toUpperCase();
 }
