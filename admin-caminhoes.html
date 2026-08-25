@@ -60,7 +60,29 @@
         </div>
 
         <div class="campo">
-          <label>Configuração de eixos <span style="font-weight:400; color:var(--texto-secundario)">(classificação oficial CONTRAN)</span></label>
+          <label for="selectEstrutura">Estrutura</label>
+          <select id="selectEstrutura" onchange="mudarEstrutura(this.value)">
+            <option value="">Selecionar / montar manualmente</option>
+            <option value="truck">Truck</option>
+            <option value="bitruck">Bitruck</option>
+            <option value="carreta">Carreta</option>
+          </select>
+        </div>
+        <label id="blocoSuspensoTruck" style="display:none; align-items:center; gap:8px; font-size:13px; color:var(--texto-secundario); margin:-8px 0 12px">
+          <input type="checkbox" id="chkSuspensoTruck" onchange="montarTruck()" style="width:16px; height:16px"/> incluir eixo suspenso extra
+        </label>
+        <div class="campo" id="blocoCavalo" style="display:none">
+          <label for="selectCavalo">Cavalo:</label>
+          <select id="selectCavalo" onchange="aplicarCavalo(this.value)">
+            <option value="">Selecionar</option>
+            <option value="4x2">4x2 "toco"</option>
+            <option value="6x2">6x2 "trucado"</option>
+            <option value="6x4">6x4 "traçado"</option>
+            <option value="8x4">8x4 "bi-truck"</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Configuração de eixos <span style="font-weight:400; color:var(--texto-secundario)">(classificação oficial CONTRAN — inclui eixos da carreta, se houver)</span></label>
           <div id="listaEixos" style="display:flex; flex-direction:column; gap:8px;"></div>
           <button class="botao-linha" style="margin-top:8px" onclick="adicionarEixo()">+ adicionar eixo</button>
         </div>

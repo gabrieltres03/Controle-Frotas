@@ -12,6 +12,71 @@ const CONFIGURACOES_EIXO = {
   duplo_dupla_tandem: { rotulo: "Duplo, rodagem dupla (8 pneus) — tandem 1,20-2,40m", rodados: ["duplo", "duplo"] },
 };
 
+const CAVALO_PRESETS = {
+  "4x2": {
+    eixos: [
+      { tipo: "direcao", classificacao: "singela_simples" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+    ],
+  },
+  "6x2": {
+    eixos: [
+      { tipo: "direcao", classificacao: "singela_simples" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+      { tipo: "apoio", classificacao: "singela_dupla" },
+    ],
+  },
+  "6x4": {
+    eixos: [
+      { tipo: "direcao", classificacao: "singela_simples" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+    ],
+  },
+  "8x4": {
+    eixos: [
+      { tipo: "direcao", classificacao: "singela_simples" },
+      { tipo: "direcao", classificacao: "singela_simples" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+      { tipo: "tracao", classificacao: "singela_dupla" },
+    ],
+  },
+};
+
+const BITRUCK_EIXOS = [
+  { tipo: "direcao", classificacao: "singela_simples" },
+  { tipo: "direcao", classificacao: "singela_simples" },
+  { tipo: "tracao", classificacao: "singela_dupla" },
+  { tipo: "suspenso", classificacao: "singela_dupla" },
+];
+
+function mudarEstrutura(valor) {
+  document.getElementById("blocoSuspensoTruck").style.display = valor === "truck" ? "flex" : "none";
+  document.getElementById("blocoCavalo").style.display = valor === "carreta" ? "block" : "none";
+  document.getElementById("chkSuspensoTruck").checked = false;
+  document.getElementById("selectCavalo").value = "";
+  document.getElementById("listaEixos").innerHTML = "";
+
+  if (valor === "truck") montarTruck();
+  else if (valor === "bitruck") BITRUCK_EIXOS.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
+  else atualizarPreviewMapa();
+}
+
+function montarTruck() {
+  document.getElementById("listaEixos").innerHTML = "";
+  adicionarEixo("direcao", "singela_simples");
+  adicionarEixo("tracao", "singela_dupla");
+  if (document.getElementById("chkSuspensoTruck").checked) {
+    adicionarEixo("suspenso", "singela_dupla");
+  }
+}
+
+function aplicarCavalo(valor) {
+  if (!valor || !CAVALO_PRESETS[valor]) return;
+  document.getElementById("listaEixos").innerHTML = "";
+  CAVALO_PRESETS[valor].eixos.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
+}
+
 ativarCapitalizacaoAutomatica(document.getElementById("campoNome"));
 ativarMaiusculasAutomaticas(document.getElementById("campoPlaca"));
 ativarMascaraNumerica(document.getElementById("campoKm"));
@@ -158,6 +223,11 @@ function reconstruirGruposParaEdicao(eixosSalvos) {
 function abrirFormulario(placa) {
   placaEmEdicao = placa || null;
   document.getElementById("listaEixos").innerHTML = "";
+  document.getElementById("selectEstrutura").value = "";
+  document.getElementById("blocoSuspensoTruck").style.display = "none";
+  document.getElementById("blocoCavalo").style.display = "none";
+  document.getElementById("chkSuspensoTruck").checked = false;
+  document.getElementById("selectCavalo").value = "";
   document.getElementById("botaoDesativarCaminhao").style.display = placa ? "block" : "none";
   document.getElementById("linkExcluirCaminhao").style.display = placa ? "block" : "none";
 
