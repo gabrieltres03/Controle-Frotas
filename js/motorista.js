@@ -31,6 +31,7 @@ async function carregarPerfil() {
   document.getElementById("placaVinculada").textContent = caminhaoVinculado ? `Caminhão ${caminhaoVinculado}` : "Sem caminhão vinculado";
 
   carregarHistorico();
+  carregarDespesas();
   if (caminhaoVinculado) carregarMapaPneus();
 }
 
@@ -285,6 +286,43 @@ function carregarHistorico() {
       },
       () => {
         document.getElementById("listaHistorico").innerHTML = '<p class="vazio">Sem conexão pra carregar o histórico agora.</p>';
+      }
+    );
+}
+
+function rotuloRefeicao(refeicao) {
+  return { almoco: "Almoço", janta: "Janta", lanche: "Lanche" }[refeicao] || refeicao;
+}
+
+function carregarDespesas() {
+  db.collection("despesas")
+    .where("motorista_id", "==", motoristaId)
+    .orderBy("data", "desc")
+    .limit(30)
+    .onSnapshot(
+      (snapshot) => {
+        const container = document.getElementById("listaDespesas");
+        if (snapshot.empty) {
+          container.innerHTML = '<p class="vazio">Nenhuma despesa lançada ainda.</p>';
+          return;
+        }
+        container.innerHTML = snapshot.docs
+          .map((doc) => {
+            const d = doc.data();
+            const data = d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "agora";
+            return `
+              <div class="item-lista">
+                <div class="item-lista-info">
+                  <span class="item-lista-titulo">${rotuloRefeicao(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}</span>
+                  <span class="item-lista-sub">${d.restaurante} · ${d.local} · ${data}</span>
+                </div>
+                <a href="${d.ticket_pdf}" download="ticket-${doc.id}.pdf" style="font-size:12px; color:var(--azul-medio); text-decoration:underline; white-space:nowrap; padding-left:8px">ver ticket</a>
+              </div>`;
+          })
+          .join("");
+      },
+      () => {
+        document.getElementById("listaDespesas").innerHTML = '<p class="vazio">Sem conexão pra carregar as despesas agora.</p>';
       }
     );
 }

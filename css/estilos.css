@@ -70,7 +70,6 @@ body {
   border-radius: 12px;
   padding: 4px;
   gap: 4px;
-  width: 100%;
   box-shadow: var(--sombra);
   margin-bottom: 18px;
 }
