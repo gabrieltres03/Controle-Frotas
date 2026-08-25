@@ -576,8 +576,8 @@ async function trocarPorEstepe(chave) {
   });
   await lote_operacao.commit();
 
-  await registrarHistoricoMotorista(itemFurado.id, chave, "troca_emergencial");
-  await registrarHistoricoMotorista(novoItemRef.id, chave, "troca_emergencial");
+  await registrarHistoricoMotorista(itemFurado.id, chave, "removido");
+  await registrarHistoricoMotorista(novoItemRef.id, chave, "instalado");
   fecharSlot();
 }
 
