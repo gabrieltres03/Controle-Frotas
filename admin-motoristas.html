@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Motoristas | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <a class="botao-voltar" href="admin.html">‹</a>
+    <span class="topo-titulo">Motoristas</span>
+  </header>
+
+  <main class="conteudo-admin">
+    <input class="campo-busca" id="busca" placeholder="Buscar por nome" oninput="filtrarLista()" />
+    <div class="lista-itens" id="listaMotoristas">
+      <p class="carregando">Carregando motoristas...</p>
+    </div>
+  </main>
+
+  <button class="botao-fab" onclick="abrirFormulario()">+</button>
+
+  <div class="folha" id="folhaMotorista">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2 id="tituloFolha">Novo motorista</h2>
+        <button class="folha-fechar" onclick="fecharFormulario()">&times;</button>
+      </div>
+      <div class="folha-corpo">
+        <div class="campo">
+          <label for="campoNome">Nome completo</label>
+          <input id="campoNome" placeholder="Ex: João Pereira" />
+        </div>
+        <div class="campo" id="blocoPin">
+          <label for="campoPin">PIN de acesso (6 dígitos)</label>
+          <input id="campoPin" type="tel" inputmode="numeric" maxlength="6" placeholder="000000" />
+        </div>
+        <div class="campo">
+          <label for="campoCaminhao">Caminhão vinculado</label>
+          <select id="campoCaminhao">
+            <option value="">Sem vínculo fixo</option>
+          </select>
+        </div>
+        <button id="linkExcluir" style="display:none; background:none; border:none; color:var(--erro); font-size:12.5px; text-decoration:underline; align-self:flex-start; padding:0" onclick="excluirMotorista()">Excluir motorista definitivamente (remove o login também)</button>
+      </div>
+      <div class="folha-rodape">
+        <button class="botao-perigo" id="botaoDesativar" style="display:none" onclick="desativarMotorista()">Desativar</button>
+        <button class="botao-primario" onclick="salvarMotorista()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="folha" id="folhaExcluir">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2>Excluir motorista</h2>
+        <button class="folha-fechar" onclick="fecharFolhaExcluir()">&times;</button>
+      </div>
+      <div class="folha-corpo">
+        <p style="font-size:13.5px; color:var(--texto-secundario); line-height:1.5">
+          Essa ação apaga o login e o cadastro de <strong id="nomeParaExcluir"></strong> pra sempre — não dá pra desfazer.
+          Digite o PIN dele pra confirmar.
+        </p>
+        <div class="campo">
+          <label for="pinExclusao">PIN de 6 dígitos</label>
+          <input id="pinExclusao" type="tel" inputmode="numeric" maxlength="6" placeholder="000000" />
+        </div>
+        <p class="mensagem-erro" id="erroExclusao"></p>
+      </div>
+      <div class="folha-rodape">
+        <button class="botao-linha" style="flex:1" onclick="fecharFolhaExcluir()">Cancelar</button>
+        <button class="botao-perigo" style="flex:1" onclick="confirmarExclusao()">Excluir definitivamente</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-motoristas.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Controle de Frota | Tres Business & Tech</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+
+  <main class="tela-login">
+    <div class="marca">
+      <img src="assets/logo.png" alt="Tres Business & Tech" style="width:68px; height:68px" />
+      <span class="marca-nome">Tres Business &amp; Tech</span>
+      <span class="marca-produto">Controle de Frota</span>
+    </div>
+
+    <div class="abas-perfil">
+      <button class="aba-perfil ativa" data-perfil="motorista" onclick="selecionarPerfil('motorista')">Motorista</button>
+      <button class="aba-perfil" data-perfil="admin" onclick="selecionarPerfil('admin')">Admin</button>
+    </div>
+
+    <div class="campo-usuario" id="blocoMotorista">
+      <label for="selectMotorista">Motorista</label>
+      <select id="selectMotorista">
+        <option value="">Selecione seu nome</option>
+      </select>
+    </div>
+
+    <p class="pin-titulo">Digite seu PIN</p>
+    <div class="pin-pontos" id="pinPontos">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="teclado-numerico" id="teclado">
+      <button class="tecla" onclick="digitarPin(1)">1</button>
+      <button class="tecla" onclick="digitarPin(2)">2</button>
+      <button class="tecla" onclick="digitarPin(3)">3</button>
+      <button class="tecla" onclick="digitarPin(4)">4</button>
+      <button class="tecla" onclick="digitarPin(5)">5</button>
+      <button class="tecla" onclick="digitarPin(6)">6</button>
+      <button class="tecla" onclick="digitarPin(7)">7</button>
+      <button class="tecla" onclick="digitarPin(8)">8</button>
+      <button class="tecla" onclick="digitarPin(9)">9</button>
+      <span class="tecla-vazia"></span>
+      <button class="tecla" onclick="digitarPin(0)">0</button>
+      <button class="tecla tecla-apagar" onclick="apagarPin()">apagar</button>
+    </div>
+
+    <p class="mensagem-erro" id="mensagemErro"></p>
+  </main>
+
+  <footer class="rodape">
+    <div class="rodape-contatos">
+      <a href="https://wa.me/5545999170552" target="_blank" aria-label="WhatsApp">
+        <img src="assets/icone-whatsapp.png" alt="WhatsApp" width="22" height="22" />
+      </a>
+      <a href="https://instagram.com" target="_blank" aria-label="Instagram">
+        <img src="assets/icone-instagram.png" alt="Instagram" width="22" height="22" />
+      </a>
+      <a href="mailto:gabriel.henri266@gmail.com" aria-label="E-mail">
+        <img src="assets/icone-email.png" alt="E-mail" width="22" height="22" />
+      </a>
+    </div>
+    <div class="rodape-links">
+      <button onclick="abrirTermos('uso')">Termos de uso</button>
+      <button onclick="abrirTermos('licenca')">Licença de uso</button>
+    </div>
+    <p class="rodape-empresa">Tres Business &amp; Tech LTDA — Toledo, PR</p>
+  </footer>
+
+  <div class="sobreposicao" id="sobreposicaoTermos">
+    <div class="modal-termos">
+      <div class="modal-cabecalho">
+        <h2 id="tituloModal">Termos de uso</h2>
+        <button class="modal-fechar" onclick="fecharTermos()">&times;</button>
+      </div>
+      <div class="modal-corpo" id="corpoModal"></div>
+      <div class="modal-rodape" id="rodapeModal"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/termos.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

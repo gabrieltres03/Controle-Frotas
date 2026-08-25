@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Painel Admin | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <div class="topo-marca">
+      <img src="assets/logo.png" alt="Tres Business & Tech" style="width:30px; height:30px" />
+      <span>Painel Admin</span>
+    </div>
+    <button class="botao-sair" onclick="sair()">Sair</button>
+  </header>
+
+  <main class="conteudo-admin">
+    <div class="grade-atalhos">
+      <a class="cartao-atalho" href="admin-caminhoes.html">
+        <span class="cartao-icone">🚚</span>
+        <span class="cartao-titulo">Caminhões</span>
+        <span class="cartao-desc">Cadastro, eixos e KM</span>
+      </a>
+      <a class="cartao-atalho" href="admin-pneus.html">
+        <span class="cartao-icone">🛞</span>
+        <span class="cartao-titulo">Mapa de pneus</span>
+        <span class="cartao-desc">Instalar, trocar, remover</span>
+      </a>
+      <a class="cartao-atalho" href="admin-estoque.html">
+        <span class="cartao-icone">📦</span>
+        <span class="cartao-titulo">Estoque</span>
+        <span class="cartao-desc">Pneus e ferramentas parados</span>
+      </a>
+      <a class="cartao-atalho" href="admin-motoristas.html">
+        <span class="cartao-icone">👤</span>
+        <span class="cartao-titulo">Motoristas</span>
+        <span class="cartao-desc">Cadastro e PINs</span>
+      </a>
+      <a class="cartao-atalho" href="admin-relatorios.html">
+        <span class="cartao-icone">📊</span>
+        <span class="cartao-titulo">Relatórios</span>
+        <span class="cartao-desc">Filtro de data, PDF/Excel</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

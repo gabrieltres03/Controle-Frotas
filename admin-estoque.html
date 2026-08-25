@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Estoque | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <a class="botao-voltar" href="admin.html">‹</a>
+    <span class="topo-titulo">Estoque</span>
+  </header>
+
+  <main class="conteudo-admin">
+    <div class="abas-perfil" style="margin-bottom:14px">
+      <button class="aba-perfil ativa" data-tipo="pneu" onclick="mudarAba('pneu')">Pneus</button>
+      <button class="aba-perfil" data-tipo="ferramenta" onclick="mudarAba('ferramenta')">Ferramentas</button>
+    </div>
+    <input class="campo-busca" id="busca" placeholder="Buscar por código" oninput="filtrarLista()" />
+    <div class="lista-itens" id="listaEstoque">
+      <p class="carregando">Carregando estoque...</p>
+    </div>
+  </main>
+
+  <button class="botao-fab" onclick="abrirFormulario()">+</button>
+
+  <div class="folha" id="folhaItem">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2>Nova entrada de estoque</h2>
+        <button class="folha-fechar" onclick="fecharFormulario()">&times;</button>
+      </div>
+      <div class="folha-corpo">
+        <div class="campo">
+          <label for="campoTipo">Tipo</label>
+          <select id="campoTipo">
+            <option value="pneu">Pneu</option>
+            <option value="ferramenta">Ferramenta</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="campoCodigo">Código / identificação</label>
+          <input id="campoCodigo" placeholder="Ex: PN-LISO-01 ou patrimônio" style="text-transform:uppercase" />
+        </div>
+        <div class="campo">
+          <label for="campoQuantidade">Quantidade comprada</label>
+          <input id="campoQuantidade" type="number" min="1" value="1" inputmode="numeric" />
+        </div>
+        <div class="campo" id="blocoMarca">
+          <label for="campoMarca">Marca / modelo</label>
+          <input id="campoMarca" placeholder="Ex: Pirelli Formula Driver" />
+        </div>
+        <div class="campo" id="blocoRodagem">
+          <label for="campoTipoRodagem">Tipo de pneu</label>
+          <select id="campoTipoRodagem">
+            <option value="liso">Liso</option>
+            <option value="misto">Misto</option>
+            <option value="borrachudo">Borrachudo</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="campoObs">Observações</label>
+          <textarea id="campoObs" rows="2" placeholder="Opcional"></textarea>
+        </div>
+      </div>
+      <div class="folha-rodape">
+        <button class="botao-primario" onclick="salvarItem()">Adicionar ao estoque</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-estoque.js"></script>
+</body>
+</html>

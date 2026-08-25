@@ -1,0 +1,29 @@
+.topo-motorista {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topo-motorista .topo-titulo {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.topo-caminhao {
+  display: block;
+  font-size: 12px;
+  color: var(--texto-secundario);
+}
+
+.abas-quatro .aba-perfil {
+  font-size: 12px;
+  padding: 10px 2px;
+}

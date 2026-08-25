@@ -1,0 +1,80 @@
+.topo-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--branco);
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topo-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--azul-escuro);
+}
+
+.topo-marca svg {
+  width: 30px;
+  height: 30px;
+}
+
+.botao-sair {
+  border: 1.5px solid var(--borda);
+  background: var(--branco);
+  color: var(--texto-secundario);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.conteudo-admin {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.grade-atalhos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cartao-atalho {
+  background: var(--branco);
+  border-radius: 14px;
+  padding: 18px 14px;
+  box-shadow: var(--sombra);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cartao-icone {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.cartao-titulo {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.cartao-desc {
+  font-size: 12px;
+  color: var(--texto-secundario);
+}
+
+@media (min-width: 560px) {
+  .grade-atalhos {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

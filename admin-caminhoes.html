@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Caminhões | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+</head>
+<body>
+
+  <header class="topo-admin">
+    <a class="botao-voltar" href="admin.html">‹</a>
+    <span class="topo-titulo">Caminhões</span>
+  </header>
+
+  <main class="conteudo-admin">
+    <input class="campo-busca" id="busca" placeholder="Buscar por placa ou nome" oninput="filtrarLista()" />
+    <div class="lista-itens" id="listaCaminhoes">
+      <p class="carregando">Carregando caminhões...</p>
+    </div>
+  </main>
+
+  <button class="botao-fab" onclick="abrirFormulario()">+</button>
+
+  <div class="folha" id="folhaCaminhao">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2 id="tituloFolha">Novo caminhão</h2>
+        <button class="folha-fechar" onclick="fecharFormulario()">&times;</button>
+      </div>
+      <div class="folha-corpo">
+        <div class="campo">
+          <label for="campoPlaca">Placa</label>
+          <input id="campoPlaca" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase" />
+        </div>
+        <div class="campo">
+          <label for="campoNome">Nome / apelido</label>
+          <input id="campoNome" placeholder="Ex: Volvo 01" />
+        </div>
+        <div class="campo">
+          <label for="campoCarroceria">Tipo de carroceria</label>
+          <select id="campoCarroceria">
+            <option value="graneleiro">Graneleiro</option>
+            <option value="porcadeiro">Porcadeiro</option>
+            <option value="racao">Ração</option>
+            <option value="prancha">Prancha</option>
+            <option value="basculante">Basculante</option>
+            <option value="sider">Sider</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="campoKm">KM atual</label>
+          <input id="campoKm" type="text" inputmode="decimal" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label>Configuração de eixos <span style="font-weight:400; color:var(--texto-secundario)">(classificação oficial CONTRAN)</span></label>
+          <div id="listaEixos" style="display:flex; flex-direction:column; gap:8px;"></div>
+          <button class="botao-linha" style="margin-top:8px" onclick="adicionarEixo()">+ adicionar eixo</button>
+        </div>
+        <button id="linkExcluirCaminhao" style="display:none; background:none; border:none; color:var(--erro); font-size:12.5px; text-decoration:underline; align-self:flex-start; padding:0" onclick="abrirExclusaoCaminhao()">Excluir caminhão definitivamente</button>
+      </div>
+      <div class="folha-rodape">
+        <button class="botao-perigo" id="botaoDesativarCaminhao" style="display:none" onclick="desativarCaminhao()">Desativar</button>
+        <button class="botao-primario" onclick="salvarCaminhao()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="folha" id="folhaExcluirCaminhao">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2>Excluir caminhão</h2>
+        <button class="folha-fechar" onclick="fecharExclusaoCaminhao()">&times;</button>
+      </div>
+      <div class="folha-corpo">
+        <p style="font-size:13.5px; color:var(--texto-secundario); line-height:1.5">
+          Isso apaga o cadastro do caminhão <strong id="placaParaExcluir"></strong> pra sempre (o histórico de pneus e abastecimentos continua guardado). Digite a placa pra confirmar.
+        </p>
+        <div class="campo">
+          <label for="confirmacaoPlaca">Placa</label>
+          <input id="confirmacaoPlaca" style="text-transform:uppercase" />
+        </div>
+        <p class="mensagem-erro" id="erroExclusaoCaminhao"></p>
+      </div>
+      <div class="folha-rodape">
+        <button class="botao-linha" style="flex:1" onclick="fecharExclusaoCaminhao()">Cancelar</button>
+        <button class="botao-perigo" style="flex:1" onclick="confirmarExclusaoCaminhao()">Excluir definitivamente</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-caminhoes.js"></script>
+</body>
+</html>

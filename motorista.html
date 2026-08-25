@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c70bc" />
+  <title>Área do motorista | Controle de Frota</title>
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="css/admin-comum.css" />
+  <link rel="stylesheet" href="css/mapa-pneus.css" />
+  <link rel="stylesheet" href="css/motorista.css" />
+</head>
+<body>
+
+  <header class="topo-motorista">
+    <div style="display:flex; align-items:center; gap:10px">
+      <img src="assets/logo.png" alt="Tres Business & Tech" style="width:32px; height:32px" />
+      <div>
+        <span class="topo-titulo" id="nomeMotorista">Motorista</span>
+        <span class="topo-caminhao" id="placaVinculada"></span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px">
+      <span class="selo selo-alerta" id="badgePendentes" style="display:none">0 pendentes</span>
+      <button class="botao-voltar" onclick="sairMotorista()" style="font-size:14px">Sair</button>
+    </div>
+  </header>
+
+  <div class="abas-perfil abas-quatro" style="margin:14px 16px 0">
+    <button class="aba-perfil ativa" data-aba="abastecer" onclick="mudarAba('abastecer')">Abastecer</button>
+    <button class="aba-perfil" data-aba="alimentacao" onclick="mudarAba('alimentacao')">Alimentação</button>
+    <button class="aba-perfil" data-aba="historico" onclick="mudarAba('historico')">Histórico</button>
+    <button class="aba-perfil" data-aba="pneus" onclick="mudarAba('pneus')">Pneus</button>
+  </div>
+
+  <main class="conteudo-admin">
+
+    <section id="abaAbastecer">
+      <div class="campo">
+        <label for="campoLitros">Litros abastecidos</label>
+        <input type="number" step="0.01" inputmode="decimal" id="campoLitros" placeholder="0,00" />
+      </div>
+      <div class="campo">
+        <label for="campoKmAtual">KM no painel</label>
+        <input type="text" inputmode="decimal" id="campoKmAtual" placeholder="0" />
+      </div>
+      <div class="campo">
+        <label for="campoValor">Valor pago (R$)</label>
+        <input type="text" inputmode="decimal" id="campoValor" placeholder="0,00" />
+      </div>
+      <button class="botao-primario" style="width:100%" onclick="lancarAbastecimento()">Lançar abastecimento</button>
+      <p class="mensagem-erro" id="mensagemAbastecimento"></p>
+    </section>
+
+    <section id="abaAlimentacao" style="display:none">
+      <div class="campo">
+        <label for="campoRefeicao">Refeição</label>
+        <select id="campoRefeicao">
+          <option value="almoco">Almoço</option>
+          <option value="janta">Janta</option>
+          <option value="lanche">Lanche</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="campoRestaurante">Nome do restaurante</label>
+        <input id="campoRestaurante" placeholder="Ex: Restaurante do Zé" />
+      </div>
+      <div class="campo">
+        <label for="campoLocalRefeicao">Local</label>
+        <input id="campoLocalRefeicao" placeholder="Ex: Cascavel, PR" />
+      </div>
+      <div class="campo">
+        <label for="campoValorRefeicao">Valor pago (R$)</label>
+        <input type="text" inputmode="decimal" id="campoValorRefeicao" placeholder="0,00" />
+      </div>
+      <div class="campo">
+        <label for="campoFotoTicket">Foto do ticket</label>
+        <input type="file" accept="image/*" capture="environment" id="campoFotoTicket" />
+      </div>
+      <button class="botao-primario" style="width:100%" onclick="lancarDespesaAlimentacao()">Lançar despesa</button>
+      <p class="mensagem-erro" id="mensagemAlimentacao"></p>
+    </section>
+
+    <section id="abaHistorico" style="display:none">
+      <div class="lista-itens" id="listaHistorico">
+        <p class="carregando">Carregando...</p>
+      </div>
+    </section>
+
+    <section id="abaPneus" style="display:none">
+      <div id="mapaEixosMotorista"></div>
+    </section>
+
+  </main>
+
+  <div class="folha" id="folhaSlot">
+    <div class="folha-conteudo">
+      <div class="folha-cabecalho">
+        <h2 id="tituloSlot">Posição</h2>
+        <button class="folha-fechar" onclick="fecharSlot()">&times;</button>
+      </div>
+      <div class="folha-corpo" id="corpoSlot"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utilitarios.js"></script>
+  <script src="js/motorista.js"></script>
+</body>
+</html>
