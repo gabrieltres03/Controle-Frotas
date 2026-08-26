@@ -19,7 +19,7 @@ db.collection("motoristas").orderBy("nome").onSnapshot(
 db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot((snapshot) => {
   const select = document.getElementById("campoCaminhao");
   const atual = select.value;
-  select.innerHTML = '<option value="">Sem vínculo fixo</option>';
+  select.innerHTML = '<option value="coringa">🃏 Coringa (escolhe o veículo a cada lançamento)</option>';
   snapshot.docs.forEach((doc) => {
     const c = doc.data();
     const opcao = document.createElement("option");
@@ -42,7 +42,7 @@ function renderizarLista(lista) {
         <div class="item-lista" onclick="abrirFormulario('${m.id}')">
           <div class="item-lista-info">
             <span class="item-lista-titulo">${m.nome}</span>
-            <span class="item-lista-sub">${m.caminhao_vinculado ? "Vinculado a " + m.caminhao_vinculado : "Sem vínculo fixo"}</span>
+            <span class="item-lista-sub">${!m.caminhao_vinculado || m.caminhao_vinculado === "coringa" ? "🃏 Coringa" : "Vinculado a " + m.caminhao_vinculado}</span>
           </div>
           <span class="selo ${m.ativo ? "selo-ok" : "selo-neutro"}">${m.ativo ? "Ativo" : "Inativo"}</span>
         </div>`
@@ -74,13 +74,13 @@ function abrirFormulario(id) {
     document.getElementById("tituloFolha").textContent = "Editar motorista";
     document.getElementById("campoNome").value = m.nome;
     document.getElementById("campoNome").disabled = true;
-    document.getElementById("campoCaminhao").value = m.caminhao_vinculado || "";
+    document.getElementById("campoCaminhao").value = m.caminhao_vinculado || "coringa";
   } else {
     document.getElementById("tituloFolha").textContent = "Novo motorista";
     document.getElementById("campoNome").value = "";
     document.getElementById("campoNome").disabled = false;
     document.getElementById("campoPin").value = "";
-    document.getElementById("campoCaminhao").value = "";
+    document.getElementById("campoCaminhao").value = "coringa";
   }
 
   document.getElementById("folhaMotorista").classList.add("aberta");

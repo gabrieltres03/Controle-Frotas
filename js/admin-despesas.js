@@ -112,14 +112,17 @@ function renderizarDespesasAdmin(itens) {
     .map((d) => {
       cachePdfAdmin[d.id] = d.ticket_pdf;
       const data = d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "";
+      const obs = d.observacao ? ` · obs: ${d.observacao}` : "";
+      const titulo = d.tipo === "alimentacao" ? rotuloRefeicaoAdmin(d.refeicao) : d.categoria || "Outra despesa";
+      const sub = d.tipo === "alimentacao" ? `${d.restaurante || "—"} · ${d.local || "—"} · ${data}${obs}` : `${d.caminhao || "—"} · ${data}${obs}`;
       return `
         <div class="item-lista">
           <div class="item-lista-info">
-            <span class="item-lista-titulo">${d.motorista_id || "—"} · ${rotuloRefeicaoAdmin(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}</span>
-            <span class="item-lista-sub">${d.restaurante || "—"} · ${d.local || "—"} · ${data}</span>
+            <span class="item-lista-titulo">${d.motorista_id || "—"} · ${titulo} · R$ ${Number(d.valor).toFixed(2)}</span>
+            <span class="item-lista-sub">${sub}</span>
           </div>
           <div style="display:flex; gap:6px">
-            <button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px" onclick="abrirPdfBase64(cachePdfAdmin['${d.id}'], 'ticket-${d.id}.pdf')">ver ticket</button>
+            ${d.ticket_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px" onclick="abrirPdfBase64(cachePdfAdmin['${d.id}'], 'ticket-${d.id}.pdf')">ver ticket</button>` : ""}
             <button class="botao-perigo" style="height:32px; padding:0 10px; font-size:12px" onclick="apagarLancamento('despesas', '${d.id}')">apagar</button>
           </div>
         </div>`;

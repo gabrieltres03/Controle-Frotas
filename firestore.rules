@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehAdmin() {
+      return request.auth != null && request.auth.token.email.matches('^admin#.*');
+    }
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    match /caminhoes/{placa} {
+      allow read: if autenticado();
+      allow create, delete: if ehAdmin();
+      allow update: if autenticado();
+    }
+
+    match /motoristas/{id} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
+    match /itens/{id} {
+      allow read: if autenticado();
+      allow write: if autenticado();
+    }
+
+    match /historico_movimentacoes/{id} {
+      allow read: if autenticado();
+      allow create: if autenticado();
+      allow update, delete: if ehAdmin();
+    }
+
+    match /abastecimentos/{id} {
+      allow read: if autenticado();
+      allow create: if autenticado();
+      allow update, delete: if ehAdmin();
+    }
+
+    match /despesas/{id} {
+      allow read: if autenticado();
+      allow create: if autenticado();
+      allow update, delete: if ehAdmin();
+    }
+
+    match /tipos_lancamento/{id} {
+      allow read: if autenticado();
+      allow write: if ehAdmin();
+    }
+  }
+}

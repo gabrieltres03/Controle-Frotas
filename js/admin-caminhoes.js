@@ -50,6 +50,11 @@ const BITRUCK_EIXOS = [
   { tipo: "suspenso", classificacao: "singela_dupla" },
 ];
 
+const VEICULO_EIXOS = [
+  { tipo: "direcao", classificacao: "singela_simples" },
+  { tipo: "tracao", classificacao: "singela_simples" },
+];
+
 function mudarEstrutura(valor) {
   document.getElementById("blocoSuspensoTruck").style.display = valor === "truck" ? "flex" : "none";
   document.getElementById("blocoCavalo").style.display = valor === "carreta" ? "block" : "none";
@@ -59,6 +64,7 @@ function mudarEstrutura(valor) {
 
   if (valor === "truck") montarTruck();
   else if (valor === "bitruck") BITRUCK_EIXOS.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
+  else if (valor === "veiculo") VEICULO_EIXOS.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
   else atualizarPreviewMapa();
 }
 
@@ -114,7 +120,7 @@ function renderizarLista(lista) {
 }
 
 function rotuloCarroceria(tipo) {
-  const rotulos = { graneleiro: "Graneleiro", porcadeiro: "Porcadeiro", racao: "Ração", prancha: "Prancha", basculante: "Basculante", sider: "Sider", outro: "Outro" };
+  const rotulos = { graneleiro: "Graneleiro", porcadeiro: "Porcadeiro", racao: "Ração", prancha: "Prancha", basculante: "Basculante", sider: "Sider", carro: "Carro", camionete: "Camionete", utilitario: "Utilitário", outro: "Outro" };
   return rotulos[tipo] || "—";
 }
 

@@ -119,9 +119,10 @@ function montarLinhasDespesas() {
     Data: d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "",
     Caminhão: d.caminhao || "",
     Motorista: d.motorista_id || "",
-    Refeição: rotuloRefeicaoRelatorio(d.refeicao),
+    Tipo: d.tipo === "alimentacao" ? rotuloRefeicaoRelatorio(d.refeicao) : d.categoria || "Outra",
     Restaurante: d.restaurante || "",
     Local: d.local || "",
+    Observação: d.observacao || "",
     "Valor (R$)": d.valor || 0,
   }));
 }
@@ -157,11 +158,11 @@ function exportarPdf() {
 
   let proximaY = doc.lastAutoTable.finalY + 12;
   doc.setFontSize(12);
-  doc.text("Despesas de alimentação", 14, proximaY);
+  doc.text("Despesas", 14, proximaY);
   doc.autoTable({
     startY: proximaY + 4,
-    head: [["Data", "Caminhão", "Motorista", "Refeição", "Restaurante", "Local", "Valor (R$)"]],
-    body: montarLinhasDespesas().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Refeição, l.Restaurante, l.Local, l["Valor (R$)"]]),
+    head: [["Data", "Caminhão", "Motorista", "Tipo", "Restaurante", "Local", "Obs.", "Valor (R$)"]],
+    body: montarLinhasDespesas().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Tipo, l.Restaurante, l.Local, l.Observação, l["Valor (R$)"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });

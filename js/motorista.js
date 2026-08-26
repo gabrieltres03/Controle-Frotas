@@ -3,7 +3,10 @@ const CHAVE_FILA_OFFLINE = "frota_fila_abastecimentos";
 let motoristaId = null;
 let motoristaNome = "";
 let caminhaoVinculado = null;
+let ehCoringa = false;
+let veiculoAtivo = null;
 let itensDoCaminhao = {};
+let catalogoDespesas = [];
 
 auth.onAuthStateChanged(async (usuario) => {
   const perfilSalvo = localStorage.getItem("frota_perfil");
@@ -15,6 +18,7 @@ auth.onAuthStateChanged(async (usuario) => {
   ativarMascaraNumerica(document.getElementById("campoKmAtual"));
   ativarMascaraNumerica(document.getElementById("campoValor"));
   ativarMascaraNumerica(document.getElementById("campoValorRefeicao"));
+  ativarMascaraNumerica(document.getElementById("campoValorOutra"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoRestaurante"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoLocalRefeicao"));
   await carregarPerfil();
@@ -22,18 +26,46 @@ auth.onAuthStateChanged(async (usuario) => {
   if (navigator.onLine) sincronizarFila();
 });
 
+db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot((snapshot) => {
+  const select = document.getElementById("selectVeiculoCoringa");
+  const atual = select.value;
+  select.innerHTML = '<option value="">Selecione o veículo</option>';
+  snapshot.docs.forEach((doc) => {
+    const opcao = document.createElement("option");
+    opcao.value = doc.id;
+    opcao.textContent = `${doc.id} — ${doc.data().nome || ""}`;
+    select.appendChild(opcao);
+  });
+  select.value = atual;
+});
+
 async function carregarPerfil() {
   const doc = await db.collection("motoristas").doc(motoristaId).get();
   const dados = doc.data();
   motoristaNome = dados.nome;
   caminhaoVinculado = dados.caminhao_vinculado || null;
+  ehCoringa = !caminhaoVinculado || caminhaoVinculado === "coringa";
 
   document.getElementById("nomeMotorista").textContent = motoristaNome;
-  document.getElementById("placaVinculada").textContent = caminhaoVinculado ? `Caminhão ${caminhaoVinculado}` : "Sem caminhão vinculado";
+
+  if (ehCoringa) {
+    document.getElementById("placaVinculada").textContent = "Motorista coringa";
+    document.getElementById("blocoVeiculoCoringa").style.display = "block";
+  } else {
+    veiculoAtivo = caminhaoVinculado;
+    document.getElementById("placaVinculada").textContent = `Veículo ${caminhaoVinculado}`;
+    document.getElementById("blocoVeiculoCoringa").style.display = "none";
+  }
 
   carregarHistorico();
   carregarDespesas();
-  if (caminhaoVinculado) carregarMapaPneus();
+  carregarCatalogoDespesas();
+  if (veiculoAtivo) carregarMapaPneus();
+}
+
+function trocarVeiculoCoringa(valor) {
+  veiculoAtivo = valor || null;
+  carregarMapaPneus();
 }
 
 function sairMotorista() {
@@ -50,6 +82,36 @@ function mudarAba(aba) {
   document.getElementById("abaAlimentacao").style.display = aba === "alimentacao" ? "block" : "none";
   document.getElementById("abaHistorico").style.display = aba === "historico" ? "block" : "none";
   document.getElementById("abaPneus").style.display = aba === "pneus" ? "block" : "none";
+}
+
+// ---------- catálogo de tipos de despesa ----------
+
+function carregarCatalogoDespesas() {
+  db.collection("tipos_lancamento")
+    .where("ativo", "==", true)
+    .orderBy("nome")
+    .onSnapshot((snapshot) => {
+      catalogoDespesas = snapshot.docs.map((d) => ({ id: d.id, nome: d.data().nome }));
+      const select = document.getElementById("campoTipoDespesa");
+      const atual = select.value;
+      select.innerHTML =
+        '<option value="alimentacao">Alimentação</option>' +
+        catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
+      if (Array.from(select.options).some((o) => o.value === atual)) select.value = atual;
+      mudarTipoDespesa();
+    });
+}
+
+function mudarTipoDespesa() {
+  const tipo = document.getElementById("campoTipoDespesa").value;
+  document.getElementById("blocoAlimentacao").style.display = tipo === "alimentacao" ? "block" : "none";
+  document.getElementById("blocoOutraDespesa").style.display = tipo === "alimentacao" ? "none" : "block";
+}
+
+function lancarDespesa() {
+  const tipo = document.getElementById("campoTipoDespesa").value;
+  if (tipo === "alimentacao") return lancarDespesaAlimentacao();
+  return lancarOutraDespesa(tipo);
 }
 
 // ---------- abastecimento + fila offline ----------
@@ -93,13 +155,16 @@ async function calcularMedia(caminhao, kmAtual) {
 }
 
 async function lancarAbastecimento() {
-  if (!caminhaoVinculado) {
-    document.getElementById("mensagemAbastecimento").textContent = "Você não tem caminhão vinculado, fale com o admin.";
+  if (!veiculoAtivo) {
+    document.getElementById("mensagemAbastecimento").textContent = ehCoringa
+      ? "Selecione um veículo primeiro."
+      : "Você não tem veículo vinculado, fale com o admin.";
     return;
   }
   const litros = Number(document.getElementById("campoLitros").value);
   const kmAtual = lerNumeroBR(document.getElementById("campoKmAtual").value);
   const valor = lerNumeroBR(document.getElementById("campoValor").value);
+  const observacao = document.getElementById("campoObsAbastecimento").value.trim();
   const arquivoNota = document.getElementById("campoFotoNota").files[0];
 
   if (!litros || !kmAtual || !arquivoNota) {
@@ -107,56 +172,67 @@ async function lancarAbastecimento() {
     return;
   }
 
-  document.getElementById("mensagemAbastecimento").textContent = "Processando a foto...";
-
-  let notaPdf;
-  try {
-    notaPdf = await gerarTicketEmPdf(arquivoNota);
-  } catch (erro) {
-    document.getElementById("mensagemAbastecimento").textContent = "Erro na foto: " + erro.message;
-    return;
-  }
-
-  const registro = {
-    caminhao: caminhaoVinculado,
-    motorista_id: motoristaId,
-    litros,
-    km_atual: kmAtual,
-    valor: valor || 0,
-    nota_pdf: notaPdf,
-    foto_tirada_em: new Date().toISOString(),
-    criado_localmente_em: new Date().toISOString(),
-  };
-
-  document.getElementById("mensagemAbastecimento").textContent = "Salvando...";
+  const botao = document.getElementById("botaoLancarAbastecimento");
+  botao.disabled = true;
+  const textoOriginal = botao.textContent;
+  botao.textContent = "Salvando...";
 
   try {
-    if (!navigator.onLine) throw new Error("offline");
-    const media = await calcularMedia(caminhaoVinculado, kmAtual);
-    await db.collection("abastecimentos").add({
-      ...registro,
-      media,
-      data: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    await db.collection("caminhoes").doc(caminhaoVinculado).update({ km_atual: kmAtual });
-    limparFormularioAbastecimento("Abastecimento lançado!");
-    carregarHistorico();
-  } catch (erro) {
-    const semConexaoDeVerdade = !navigator.onLine || erro.code === "unavailable" || erro.message === "offline";
-    if (semConexaoDeVerdade) {
-      const fila = lerFila();
-      fila.push(registro);
-      const salvouOffline = gravarFila(fila);
-      atualizarBadgePendentes();
-      if (salvouOffline) {
-        limparFormularioAbastecimento("Sem conexão — salvo no aparelho, sincroniza sozinho quando voltar a internet.");
-      } else {
-        document.getElementById("mensagemAbastecimento").textContent =
-          "Sem conexão e sem espaço de armazenamento no aparelho pra guardar offline. Sincroniza os pendentes primeiro ou tenta com internet.";
-      }
-    } else {
-      document.getElementById("mensagemAbastecimento").textContent = "Erro ao salvar: " + erro.message;
+    document.getElementById("mensagemAbastecimento").textContent = "Processando a foto...";
+
+    let notaPdf;
+    try {
+      notaPdf = await gerarTicketEmPdf(arquivoNota);
+    } catch (erro) {
+      document.getElementById("mensagemAbastecimento").textContent = "Erro na foto: " + erro.message;
+      return;
     }
+
+    const registro = {
+      caminhao: veiculoAtivo,
+      motorista_id: motoristaId,
+      litros,
+      km_atual: kmAtual,
+      valor: valor || 0,
+      observacao,
+      nota_pdf: notaPdf,
+      foto_tirada_em: new Date().toISOString(),
+      criado_localmente_em: new Date().toISOString(),
+    };
+
+    document.getElementById("mensagemAbastecimento").textContent = "Salvando...";
+
+    try {
+      if (!navigator.onLine) throw new Error("offline");
+      const media = await calcularMedia(veiculoAtivo, kmAtual);
+      await db.collection("abastecimentos").add({
+        ...registro,
+        media,
+        data: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection("caminhoes").doc(veiculoAtivo).update({ km_atual: kmAtual });
+      limparFormularioAbastecimento("Abastecimento lançado!");
+      carregarHistorico();
+    } catch (erro) {
+      const semConexaoDeVerdade = !navigator.onLine || erro.code === "unavailable" || erro.message === "offline";
+      if (semConexaoDeVerdade) {
+        const fila = lerFila();
+        fila.push(registro);
+        const salvouOffline = gravarFila(fila);
+        atualizarBadgePendentes();
+        if (salvouOffline) {
+          limparFormularioAbastecimento("Sem conexão — salvo no aparelho, sincroniza sozinho quando voltar a internet.");
+        } else {
+          document.getElementById("mensagemAbastecimento").textContent =
+            "Sem conexão e sem espaço de armazenamento no aparelho pra guardar offline. Sincroniza os pendentes primeiro ou tenta com internet.";
+        }
+      } else {
+        document.getElementById("mensagemAbastecimento").textContent = "Erro ao salvar: " + erro.message;
+      }
+    }
+  } finally {
+    botao.disabled = false;
+    botao.textContent = textoOriginal;
   }
 }
 
@@ -164,11 +240,12 @@ function limparFormularioAbastecimento(mensagem) {
   document.getElementById("campoLitros").value = "";
   document.getElementById("campoKmAtual").value = "";
   document.getElementById("campoValor").value = "";
+  document.getElementById("campoObsAbastecimento").value = "";
   document.getElementById("campoFotoNota").value = "";
   document.getElementById("mensagemAbastecimento").textContent = mensagem;
 }
 
-// ---------- despesa de alimentação ----------
+// ---------- compressão de foto e geração de PDF (compartilhado) ----------
 
 function comprimirImagem(arquivo, larguraMax, qualidade) {
   return new Promise((resolve, reject) => {
@@ -211,11 +288,18 @@ async function gerarTicketEmPdf(arquivo) {
   throw new Error("Não consegui deixar a foto pequena o suficiente, tenta uma foto mais simples");
 }
 
+// ---------- despesa de alimentação ----------
+
 async function lancarDespesaAlimentacao() {
+  if (ehCoringa && !veiculoAtivo) {
+    document.getElementById("mensagemAlimentacao").textContent = "Selecione um veículo primeiro.";
+    return;
+  }
   const refeicao = document.getElementById("campoRefeicao").value;
   const restaurante = document.getElementById("campoRestaurante").value.trim();
   const local = document.getElementById("campoLocalRefeicao").value.trim();
   const valor = lerNumeroBR(document.getElementById("campoValorRefeicao").value);
+  const observacao = document.getElementById("campoObsAlimentacao").value.trim();
   const arquivo = document.getElementById("campoFotoTicket").files[0];
   const mensagem = document.getElementById("mensagemAlimentacao");
 
@@ -224,9 +308,13 @@ async function lancarDespesaAlimentacao() {
     return;
   }
 
-  mensagem.textContent = "Processando a foto...";
+  const botao = document.getElementById("botaoLancarDespesa");
+  botao.disabled = true;
+  const textoOriginal = botao.textContent;
+  botao.textContent = "Salvando...";
 
   try {
+    mensagem.textContent = "Processando a foto...";
     const ticketPdf = await gerarTicketEmPdf(arquivo);
 
     mensagem.textContent = "Salvando...";
@@ -236,20 +324,82 @@ async function lancarDespesaAlimentacao() {
       restaurante,
       local,
       valor,
+      observacao,
       ticket_pdf: ticketPdf,
       foto_tirada_em: new Date().toISOString(),
       motorista_id: motoristaId,
-      caminhao: caminhaoVinculado,
+      caminhao: veiculoAtivo,
       data: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
     document.getElementById("campoRestaurante").value = "";
     document.getElementById("campoLocalRefeicao").value = "";
     document.getElementById("campoValorRefeicao").value = "";
+    document.getElementById("campoObsAlimentacao").value = "";
     document.getElementById("campoFotoTicket").value = "";
     mensagem.textContent = "Despesa lançada!";
   } catch (erro) {
     mensagem.textContent = "Erro ao salvar: " + erro.message;
+  } finally {
+    botao.disabled = false;
+    botao.textContent = textoOriginal;
+  }
+}
+
+// ---------- outras despesas (catálogo: arla, cheirinho, etc.) ----------
+
+async function lancarOutraDespesa(tipoId) {
+  if (ehCoringa && !veiculoAtivo) {
+    document.getElementById("mensagemAlimentacao").textContent = "Selecione um veículo primeiro.";
+    return;
+  }
+  const categoria = (catalogoDespesas.find((c) => c.id === tipoId) || {}).nome || tipoId;
+  const valor = lerNumeroBR(document.getElementById("campoValorOutra").value);
+  const observacao = document.getElementById("campoObsOutra").value.trim();
+  const arquivo = document.getElementById("campoFotoOutra").files[0];
+  const mensagem = document.getElementById("mensagemAlimentacao");
+
+  if (!valor) {
+    mensagem.textContent = "Informe o valor.";
+    return;
+  }
+
+  const botao = document.getElementById("botaoLancarDespesa");
+  botao.disabled = true;
+  const textoOriginal = botao.textContent;
+  botao.textContent = "Salvando...";
+
+  try {
+    let fotoPdf = null;
+    let fotoTiradaEm = null;
+    if (arquivo) {
+      mensagem.textContent = "Processando a foto...";
+      fotoPdf = await gerarTicketEmPdf(arquivo);
+      fotoTiradaEm = new Date().toISOString();
+    }
+
+    mensagem.textContent = "Salvando...";
+    await db.collection("despesas").add({
+      tipo: "outra",
+      categoria,
+      valor,
+      observacao,
+      ticket_pdf: fotoPdf,
+      foto_tirada_em: fotoTiradaEm,
+      motorista_id: motoristaId,
+      caminhao: veiculoAtivo,
+      data: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    document.getElementById("campoValorOutra").value = "";
+    document.getElementById("campoObsOutra").value = "";
+    document.getElementById("campoFotoOutra").value = "";
+    mensagem.textContent = "Despesa lançada!";
+  } catch (erro) {
+    mensagem.textContent = "Erro ao salvar: " + erro.message;
+  } finally {
+    botao.disabled = false;
+    botao.textContent = textoOriginal;
   }
 }
 
@@ -270,6 +420,7 @@ async function sincronizarFila() {
           litros: registro.litros,
           km_atual: registro.km_atual,
           valor: registro.valor,
+          observacao: registro.observacao || "",
           nota_pdf: registro.nota_pdf,
           foto_tirada_em: registro.foto_tirada_em,
           media,
@@ -313,11 +464,12 @@ function carregarHistorico() {
             const data = a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "agora";
             const media = a.media ? `${a.media.toFixed(2)} km/L` : "sem média anterior";
             const horaFoto = a.foto_tirada_em ? new Date(a.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+            const obs = a.observacao ? `<br>obs: ${a.observacao}` : "";
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
-                  <span class="item-lista-titulo">${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
-                  <span class="item-lista-sub">${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}</span>
+                  <span class="item-lista-titulo">${a.caminhao || "—"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
+                  <span class="item-lista-sub">${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}${obs}</span>
                 </div>
                 ${a.nota_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfHistorico['${doc.id}'], 'nota-${doc.id}.pdf')">ver nota</button>` : ""}
               </div>`;
@@ -354,13 +506,16 @@ function carregarDespesas() {
             cachePdfDespesas[doc.id] = d.ticket_pdf;
             const data = d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "agora";
             const horaFoto = d.foto_tirada_em ? new Date(d.foto_tirada_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+            const obs = d.observacao ? `<br>obs: ${d.observacao}` : "";
+            const titulo = d.tipo === "alimentacao" ? `${rotuloRefeicao(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}` : `${d.categoria} · R$ ${Number(d.valor).toFixed(2)}`;
+            const sub = d.tipo === "alimentacao" ? `${d.restaurante} · ${d.local} · ${data}${horaFoto ? " às " + horaFoto : ""}${obs}` : `${d.caminhao || "—"} · ${data}${horaFoto ? " às " + horaFoto : ""}${obs}`;
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
-                  <span class="item-lista-titulo">${rotuloRefeicao(d.refeicao)} · R$ ${Number(d.valor).toFixed(2)}</span>
-                  <span class="item-lista-sub">${d.restaurante} · ${d.local} · ${data}${horaFoto ? " às " + horaFoto : ""}</span>
+                  <span class="item-lista-titulo">${titulo}</span>
+                  <span class="item-lista-sub">${sub}</span>
                 </div>
-                <button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfDespesas['${doc.id}'], 'ticket-${doc.id}.pdf')">ver ticket</button>
+                ${d.ticket_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfDespesas['${doc.id}'], 'ticket-${doc.id}.pdf')">ver ticket</button>` : ""}
               </div>`;
           })
           .join("");
@@ -392,12 +547,22 @@ function gerarPosicoes(eixos) {
 }
 
 let caminhaoAtualDados = null;
+let cancelarItensMotorista = null;
 
 async function carregarMapaPneus() {
-  const doc = await db.collection("caminhoes").doc(caminhaoVinculado).get();
-  caminhaoAtualDados = { placa: caminhaoVinculado, ...doc.data() };
+  if (cancelarItensMotorista) {
+    cancelarItensMotorista();
+    cancelarItensMotorista = null;
+  }
+  if (!veiculoAtivo) {
+    document.getElementById("mapaEixosMotorista").innerHTML = '<p class="vazio">Selecione um veículo primeiro.</p>';
+    return;
+  }
 
-  db.collection("itens").where("caminhao_atual", "==", caminhaoVinculado).onSnapshot((snapshot) => {
+  const doc = await db.collection("caminhoes").doc(veiculoAtivo).get();
+  caminhaoAtualDados = { placa: veiculoAtivo, ...doc.data() };
+
+  cancelarItensMotorista = db.collection("itens").where("caminhao_atual", "==", veiculoAtivo).onSnapshot((snapshot) => {
     itensDoCaminhao = {};
     snapshot.docs.forEach((d) => {
       const item = { id: d.id, ...d.data() };
@@ -506,7 +671,7 @@ function fecharSlot() {
 async function registrarHistoricoMotorista(itemId, posicao, tipoEvento) {
   await db.collection("historico_movimentacoes").add({
     item_id: itemId,
-    caminhao: caminhaoVinculado,
+    caminhao: veiculoAtivo,
     posicao,
     tipo_evento: tipoEvento,
     km_no_evento: caminhaoAtualDados.km_atual,
@@ -530,7 +695,7 @@ async function instalarComoMotorista(chave) {
     tipo_pneu: lote.tipo_pneu || "",
     custo_unitario: lote.custo_unitario || 0,
     status: "em_uso",
-    caminhao_atual: caminhaoVinculado,
+    caminhao_atual: veiculoAtivo,
     posicao: chave,
     km_instalacao: caminhaoAtualDados.km_atual,
     km_acumulado: 0,
@@ -568,7 +733,7 @@ async function trocarPorEstepe(chave) {
     tipo_pneu: lote.tipo_pneu || "",
     custo_unitario: lote.custo_unitario || 0,
     status: "em_uso",
-    caminhao_atual: caminhaoVinculado,
+    caminhao_atual: veiculoAtivo,
     posicao: chave,
     km_instalacao: caminhaoAtualDados.km_atual,
     km_acumulado: 0,
