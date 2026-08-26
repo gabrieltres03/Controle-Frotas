@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0c70bc" />
-  <title>Caminhões | Controle de Frota</title>
+  <title>Veículos | Controle de Frota</title>
   <link rel="icon" href="assets/logo.png" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="css/estilos.css" />
@@ -15,13 +15,13 @@
 
   <header class="topo-admin">
     <a class="botao-voltar" href="admin.html">‹</a>
-    <span class="topo-titulo">Caminhões</span>
+    <span class="topo-titulo">Veículos</span>
   </header>
 
   <main class="conteudo-admin">
     <input class="campo-busca" id="busca" placeholder="Buscar por placa ou nome" oninput="filtrarLista()" />
     <div class="lista-itens" id="listaCaminhoes">
-      <p class="carregando">Carregando caminhões...</p>
+      <p class="carregando">Carregando veículos...</p>
     </div>
   </main>
 
@@ -30,7 +30,7 @@
   <div class="folha" id="folhaCaminhao">
     <div class="folha-conteudo">
       <div class="folha-cabecalho">
-        <h2 id="tituloFolha">Novo caminhão</h2>
+        <h2 id="tituloFolha">Novo veículo</h2>
         <button class="folha-fechar" onclick="fecharFormulario()">&times;</button>
       </div>
       <div class="folha-corpo">
@@ -94,7 +94,7 @@
           <label>Pré-visualização do mapa</label>
           <div id="previewMapa" style="display:flex; flex-direction:column; gap:8px"></div>
         </div>
-        <button id="linkExcluirCaminhao" style="display:none; background:none; border:none; color:var(--erro); font-size:12.5px; text-decoration:underline; align-self:flex-start; padding:0" onclick="abrirExclusaoCaminhao()">Excluir caminhão definitivamente</button>
+        <button id="linkExcluirCaminhao" style="display:none; background:none; border:none; color:var(--erro); font-size:12.5px; text-decoration:underline; align-self:flex-start; padding:0" onclick="abrirExclusaoCaminhao()">Excluir veículo definitivamente</button>
       </div>
       <div class="folha-rodape">
         <button class="botao-perigo" id="botaoDesativarCaminhao" style="display:none" onclick="desativarCaminhao()">Desativar</button>
@@ -106,12 +106,12 @@
   <div class="folha" id="folhaExcluirCaminhao">
     <div class="folha-conteudo">
       <div class="folha-cabecalho">
-        <h2>Excluir caminhão</h2>
+        <h2>Excluir veículo</h2>
         <button class="folha-fechar" onclick="fecharExclusaoCaminhao()">&times;</button>
       </div>
       <div class="folha-corpo">
         <p style="font-size:13.5px; color:var(--texto-secundario); line-height:1.5">
-          Isso apaga o cadastro do caminhão <strong id="placaParaExcluir"></strong> pra sempre (o histórico de pneus e abastecimentos continua guardado). Digite a placa pra confirmar.
+          Isso apaga o cadastro do veículo <strong id="placaParaExcluir"></strong> pra sempre (o histórico de pneus e abastecimentos continua guardado). Digite a placa pra confirmar.
         </p>
         <div class="campo">
           <label for="confirmacaoPlaca">Placa</label>

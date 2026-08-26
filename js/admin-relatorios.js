@@ -97,6 +97,7 @@ function montarLinhasAbastecimento() {
     Data: a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "",
     Caminhão: a.caminhao || "",
     Motorista: a.motorista_id || "",
+    Tipo: a.tipo || "",
     Litros: a.litros || 0,
     "Valor (R$)": a.valor || 0,
     "KM no abastecimento": a.km_atual || 0,
@@ -150,8 +151,8 @@ function exportarPdf() {
 
   doc.autoTable({
     startY: 30,
-    head: [["Data", "Caminhão", "Motorista", "Litros", "Valor (R$)", "KM", "Média"]],
-    body: montarLinhasAbastecimento().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Litros, l["Valor (R$)"], l["KM no abastecimento"], l["Média (km/L)"]]),
+    head: [["Data", "Caminhão", "Motorista", "Tipo", "Litros", "Valor (R$)", "KM", "Média"]],
+    body: montarLinhasAbastecimento().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Tipo, l.Litros, l["Valor (R$)"], l["KM no abastecimento"], l["Média (km/L)"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });

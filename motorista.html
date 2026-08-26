@@ -37,7 +37,7 @@
 
   <div class="abas-perfil abas-quatro" style="margin:14px 16px 0">
     <button class="aba-perfil ativa" data-aba="abastecer" onclick="mudarAba('abastecer')">Abastecer</button>
-    <button class="aba-perfil" data-aba="alimentacao" onclick="mudarAba('alimentacao')">Despesas</button>
+    <button class="aba-perfil" data-aba="alimentacao" onclick="mudarAba('alimentacao')">Alimentação</button>
     <button class="aba-perfil" data-aba="historico" onclick="mudarAba('historico')">Histórico</button>
     <button class="aba-perfil" data-aba="pneus" onclick="mudarAba('pneus')">Pneus</button>
   </div>
@@ -46,7 +46,13 @@
 
     <section id="abaAbastecer">
       <div class="campo">
-        <label for="campoLitros">Litros abastecidos</label>
+        <label for="campoTipoAbastecimento">Tipo</label>
+        <select id="campoTipoAbastecimento">
+          <option value="">Selecione</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="campoLitros">Quantidade</label>
         <input type="number" step="0.01" inputmode="decimal" id="campoLitros" placeholder="0,00" />
       </div>
       <div class="campo">
@@ -71,59 +77,34 @@
 
     <section id="abaAlimentacao" style="display:none">
       <div class="campo">
-        <label for="campoTipoDespesa">Tipo de despesa</label>
-        <select id="campoTipoDespesa" onchange="mudarTipoDespesa()">
-          <option value="alimentacao">Alimentação</option>
+        <label for="campoRefeicao">Refeição</label>
+        <select id="campoRefeicao">
+          <option value="almoco">Almoço</option>
+          <option value="janta">Janta</option>
+          <option value="lanche">Lanche</option>
         </select>
       </div>
-
-      <div id="blocoAlimentacao">
-        <div class="campo">
-          <label for="campoRefeicao">Refeição</label>
-          <select id="campoRefeicao">
-            <option value="almoco">Almoço</option>
-            <option value="janta">Janta</option>
-            <option value="lanche">Lanche</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="campoRestaurante">Nome do restaurante</label>
-          <input id="campoRestaurante" placeholder="Ex: Restaurante do Zé" />
-        </div>
-        <div class="campo">
-          <label for="campoLocalRefeicao">Local</label>
-          <input id="campoLocalRefeicao" placeholder="Ex: Cascavel, PR" />
-        </div>
-        <div class="campo">
-          <label for="campoValorRefeicao">Valor pago (R$)</label>
-          <input type="text" inputmode="decimal" id="campoValorRefeicao" placeholder="0,00" />
-        </div>
-        <div class="campo">
-          <label for="campoFotoTicket">Foto do ticket</label>
-          <input type="file" accept="image/*" capture="environment" id="campoFotoTicket" />
-        </div>
-        <div class="campo">
-          <label for="campoObsAlimentacao">Observação (opcional)</label>
-          <textarea id="campoObsAlimentacao" rows="2" placeholder="Opcional"></textarea>
-        </div>
+      <div class="campo">
+        <label for="campoRestaurante">Nome do restaurante</label>
+        <input id="campoRestaurante" placeholder="Ex: Restaurante do Zé" />
       </div>
-
-      <div id="blocoOutraDespesa" style="display:none">
-        <div class="campo">
-          <label for="campoValorOutra">Valor pago (R$)</label>
-          <input type="text" inputmode="decimal" id="campoValorOutra" placeholder="0,00" />
-        </div>
-        <div class="campo">
-          <label for="campoFotoOutra">Foto (opcional)</label>
-          <input type="file" accept="image/*" capture="environment" id="campoFotoOutra" />
-        </div>
-        <div class="campo">
-          <label for="campoObsOutra">Observação (opcional)</label>
-          <textarea id="campoObsOutra" rows="2" placeholder="Opcional"></textarea>
-        </div>
+      <div class="campo">
+        <label for="campoLocalRefeicao">Local</label>
+        <input id="campoLocalRefeicao" placeholder="Ex: Cascavel, PR" />
       </div>
-
-      <button class="botao-primario" id="botaoLancarDespesa" style="width:100%" onclick="lancarDespesa()">Lançar despesa</button>
+      <div class="campo">
+        <label for="campoValorRefeicao">Valor pago (R$)</label>
+        <input type="text" inputmode="decimal" id="campoValorRefeicao" placeholder="0,00" />
+      </div>
+      <div class="campo">
+        <label for="campoFotoTicket">Foto do ticket</label>
+        <input type="file" accept="image/*" capture="environment" id="campoFotoTicket" />
+      </div>
+      <div class="campo">
+        <label for="campoObsAlimentacao">Observação (opcional)</label>
+        <textarea id="campoObsAlimentacao" rows="2" placeholder="Opcional"></textarea>
+      </div>
+      <button class="botao-primario" id="botaoLancarDespesa" style="width:100%" onclick="lancarDespesaAlimentacao()">Lançar despesa</button>
       <p class="mensagem-erro" id="mensagemAlimentacao"></p>
     </section>
 

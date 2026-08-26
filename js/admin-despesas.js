@@ -90,7 +90,7 @@ function renderizarAbastecimentosAdmin(itens) {
       return `
         <div class="item-lista">
           <div class="item-lista-info">
-            <span class="item-lista-titulo">${a.motorista_id || "—"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
+            <span class="item-lista-titulo">${a.motorista_id || "—"} · ${a.tipo || "Abastecimento"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
             <span class="item-lista-sub">${a.caminhao || "—"} · ${data} · ${(a.km_atual || 0).toLocaleString("pt-BR")} km</span>
           </div>
           <div style="display:flex; gap:6px">

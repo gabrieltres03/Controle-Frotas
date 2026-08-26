@@ -100,7 +100,7 @@ db.collection("caminhoes").orderBy("nome").onSnapshot(
 function renderizarLista(lista) {
   const container = document.getElementById("listaCaminhoes");
   if (lista.length === 0) {
-    container.innerHTML = '<p class="vazio">Nenhum caminhão cadastrado ainda.<br>Toque no + pra criar o primeiro.</p>';
+    container.innerHTML = '<p class="vazio">Nenhum veículo cadastrado ainda.<br>Toque no + pra criar o primeiro.</p>';
     return;
   }
   container.innerHTML = lista
@@ -239,7 +239,7 @@ function abrirFormulario(placa) {
 
   if (placa) {
     const c = caminhoesCache.find((x) => x.placa === placa);
-    document.getElementById("tituloFolha").textContent = "Editar caminhão";
+    document.getElementById("tituloFolha").textContent = "Editar veículo";
     document.getElementById("campoPlaca").value = c.placa;
     document.getElementById("campoPlaca").disabled = true;
     document.getElementById("campoNome").value = c.nome || "";
@@ -247,7 +247,7 @@ function abrirFormulario(placa) {
     document.getElementById("campoKm").value = formatarNumeroBR(c.km_atual);
     reconstruirGruposParaEdicao(c.eixos || []).forEach((g) => adicionarEixo(g.tipo, g.classificacao));
   } else {
-    document.getElementById("tituloFolha").textContent = "Novo caminhão";
+    document.getElementById("tituloFolha").textContent = "Novo veículo";
     document.getElementById("campoPlaca").disabled = false;
     document.getElementById("campoPlaca").value = "";
     document.getElementById("campoNome").value = "";
@@ -272,7 +272,7 @@ async function salvarCaminhao() {
   const eixos = lerEixosDoFormulario();
 
   if (!placa) {
-    avisar("Atenção", "Informe a placa do caminhão");
+    avisar("Atenção", "Informe a placa do veículo");
     return;
   }
   if (eixos.length === 0) {
@@ -294,7 +294,7 @@ async function salvarCaminhao() {
 async function desativarCaminhao() {
   if (!placaEmEdicao) return;
   const confirmou = await confirmarAcao({
-    titulo: "Desativar caminhão",
+    titulo: "Desativar veículo",
     mensagem: `Desativar ${placaEmEdicao}? Some da lista, mas o histórico continua guardado.`,
     textoConfirmar: "Desativar",
   });

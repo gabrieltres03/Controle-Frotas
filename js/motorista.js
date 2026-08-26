@@ -59,7 +59,7 @@ async function carregarPerfil() {
 
   carregarHistorico();
   carregarDespesas();
-  carregarCatalogoDespesas();
+  carregarCatalogoAbastecimento();
   if (veiculoAtivo) carregarMapaPneus();
 }
 
@@ -84,34 +84,19 @@ function mudarAba(aba) {
   document.getElementById("abaPneus").style.display = aba === "pneus" ? "block" : "none";
 }
 
-// ---------- catálogo de tipos de despesa ----------
+// ---------- catálogo de tipos de abastecimento (diesel, gasolina, arla, cheirinho...) ----------
 
-function carregarCatalogoDespesas() {
+function carregarCatalogoAbastecimento() {
   db.collection("tipos_lancamento")
     .where("ativo", "==", true)
     .orderBy("nome")
     .onSnapshot((snapshot) => {
       catalogoDespesas = snapshot.docs.map((d) => ({ id: d.id, nome: d.data().nome }));
-      const select = document.getElementById("campoTipoDespesa");
+      const select = document.getElementById("campoTipoAbastecimento");
       const atual = select.value;
-      select.innerHTML =
-        '<option value="alimentacao">Alimentação</option>' +
-        catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
+      select.innerHTML = '<option value="">Selecione</option>' + catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
       if (Array.from(select.options).some((o) => o.value === atual)) select.value = atual;
-      mudarTipoDespesa();
     });
-}
-
-function mudarTipoDespesa() {
-  const tipo = document.getElementById("campoTipoDespesa").value;
-  document.getElementById("blocoAlimentacao").style.display = tipo === "alimentacao" ? "block" : "none";
-  document.getElementById("blocoOutraDespesa").style.display = tipo === "alimentacao" ? "none" : "block";
-}
-
-function lancarDespesa() {
-  const tipo = document.getElementById("campoTipoDespesa").value;
-  if (tipo === "alimentacao") return lancarDespesaAlimentacao();
-  return lancarOutraDespesa(tipo);
 }
 
 // ---------- abastecimento + fila offline ----------
@@ -161,16 +146,18 @@ async function lancarAbastecimento() {
       : "Você não tem veículo vinculado, fale com o admin.";
     return;
   }
+  const tipoId = document.getElementById("campoTipoAbastecimento").value;
   const litros = Number(document.getElementById("campoLitros").value);
   const kmAtual = lerNumeroBR(document.getElementById("campoKmAtual").value);
   const valor = lerNumeroBR(document.getElementById("campoValor").value);
   const observacao = document.getElementById("campoObsAbastecimento").value.trim();
   const arquivoNota = document.getElementById("campoFotoNota").files[0];
 
-  if (!litros || !kmAtual || !arquivoNota) {
-    document.getElementById("mensagemAbastecimento").textContent = "Preencha litros, KM e anexe a foto da nota.";
+  if (!tipoId || !litros || !kmAtual || !arquivoNota) {
+    document.getElementById("mensagemAbastecimento").textContent = "Selecione o tipo, preencha quantidade, KM e anexe a foto da nota.";
     return;
   }
+  const tipoNome = (catalogoDespesas.find((c) => c.id === tipoId) || {}).nome || tipoId;
 
   const botao = document.getElementById("botaoLancarAbastecimento");
   botao.disabled = true;
@@ -191,6 +178,7 @@ async function lancarAbastecimento() {
     const registro = {
       caminhao: veiculoAtivo,
       motorista_id: motoristaId,
+      tipo: tipoNome,
       litros,
       km_atual: kmAtual,
       valor: valor || 0,
@@ -237,6 +225,7 @@ async function lancarAbastecimento() {
 }
 
 function limparFormularioAbastecimento(mensagem) {
+  document.getElementById("campoTipoAbastecimento").value = "";
   document.getElementById("campoLitros").value = "";
   document.getElementById("campoKmAtual").value = "";
   document.getElementById("campoValor").value = "";
@@ -348,61 +337,6 @@ async function lancarDespesaAlimentacao() {
 
 // ---------- outras despesas (catálogo: arla, cheirinho, etc.) ----------
 
-async function lancarOutraDespesa(tipoId) {
-  if (ehCoringa && !veiculoAtivo) {
-    document.getElementById("mensagemAlimentacao").textContent = "Selecione um veículo primeiro.";
-    return;
-  }
-  const categoria = (catalogoDespesas.find((c) => c.id === tipoId) || {}).nome || tipoId;
-  const valor = lerNumeroBR(document.getElementById("campoValorOutra").value);
-  const observacao = document.getElementById("campoObsOutra").value.trim();
-  const arquivo = document.getElementById("campoFotoOutra").files[0];
-  const mensagem = document.getElementById("mensagemAlimentacao");
-
-  if (!valor) {
-    mensagem.textContent = "Informe o valor.";
-    return;
-  }
-
-  const botao = document.getElementById("botaoLancarDespesa");
-  botao.disabled = true;
-  const textoOriginal = botao.textContent;
-  botao.textContent = "Salvando...";
-
-  try {
-    let fotoPdf = null;
-    let fotoTiradaEm = null;
-    if (arquivo) {
-      mensagem.textContent = "Processando a foto...";
-      fotoPdf = await gerarTicketEmPdf(arquivo);
-      fotoTiradaEm = new Date().toISOString();
-    }
-
-    mensagem.textContent = "Salvando...";
-    await db.collection("despesas").add({
-      tipo: "outra",
-      categoria,
-      valor,
-      observacao,
-      ticket_pdf: fotoPdf,
-      foto_tirada_em: fotoTiradaEm,
-      motorista_id: motoristaId,
-      caminhao: veiculoAtivo,
-      data: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    document.getElementById("campoValorOutra").value = "";
-    document.getElementById("campoObsOutra").value = "";
-    document.getElementById("campoFotoOutra").value = "";
-    mensagem.textContent = "Despesa lançada!";
-  } catch (erro) {
-    mensagem.textContent = "Erro ao salvar: " + erro.message;
-  } finally {
-    botao.disabled = false;
-    botao.textContent = textoOriginal;
-  }
-}
-
 async function sincronizarFila() {
   if (sincronizando) return;
   sincronizando = true;
@@ -417,6 +351,7 @@ async function sincronizarFila() {
         await db.collection("abastecimentos").add({
           caminhao: registro.caminhao,
           motorista_id: registro.motorista_id,
+          tipo: registro.tipo,
           litros: registro.litros,
           km_atual: registro.km_atual,
           valor: registro.valor,
@@ -468,8 +403,8 @@ function carregarHistorico() {
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
-                  <span class="item-lista-titulo">${a.caminhao || "—"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
-                  <span class="item-lista-sub">${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}${obs}</span>
+                  <span class="item-lista-titulo">${a.tipo || "Abastecimento"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
+                  <span class="item-lista-sub">${a.caminhao || "—"} · ${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}${obs}</span>
                 </div>
                 ${a.nota_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfHistorico['${doc.id}'], 'nota-${doc.id}.pdf')">ver nota</button>` : ""}
               </div>`;

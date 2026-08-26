@@ -1,9 +1,19 @@
 let tiposCache = [];
+let jaSemeou = false;
 
 ativarCapitalizacaoAutomatica(document.getElementById("campoNomeTipo"));
 
 db.collection("tipos_lancamento").orderBy("nome").onSnapshot(
-  (snapshot) => {
+  async (snapshot) => {
+    if (snapshot.empty && !jaSemeou) {
+      jaSemeou = true;
+      const lote = db.batch();
+      ["Diesel", "Gasolina", "Álcool"].forEach((nome) => {
+        lote.set(db.collection("tipos_lancamento").doc(), { nome, ativo: true });
+      });
+      await lote.commit();
+      return;
+    }
     tiposCache = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     renderizarLista();
   },
