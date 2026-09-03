@@ -18,7 +18,6 @@ auth.onAuthStateChanged(async (usuario) => {
   ativarMascaraNumerica(document.getElementById("campoKmAtual"));
   ativarMascaraNumerica(document.getElementById("campoValor"));
   ativarMascaraNumerica(document.getElementById("campoValorRefeicao"));
-  ativarMascaraNumerica(document.getElementById("campoValorOutra"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoRestaurante"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoLocalRefeicao"));
   await carregarPerfil();
