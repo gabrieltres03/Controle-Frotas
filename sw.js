@@ -1,4 +1,6 @@
+
 const CACHE_NAME = "frota-cache-v7";
+
 
 const ARQUIVOS_APP = [
   "./",
