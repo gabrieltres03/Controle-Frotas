@@ -46,14 +46,9 @@
 
     <section id="abaAbastecer">
       <div class="campo">
-        <label for="campoTipoAbastecimento">Tipo</label>
-        <select id="campoTipoAbastecimento">
-          <option value="">Selecione</option>
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campoLitros">Quantidade</label>
-        <input type="number" step="0.01" inputmode="decimal" id="campoLitros" placeholder="0,00" />
+        <label>Itens abastecidos</label>
+        <div id="listaItensAbastecimento" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <button class="botao-linha" type="button" style="margin-top:8px" onclick="adicionarItemAbastecimento()">+ adicionar item</button>
       </div>
       <div class="campo">
         <label for="campoKmAtual">KM no painel</label>

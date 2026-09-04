@@ -9,7 +9,7 @@ db.collection("tipos_lancamento").orderBy("nome").onSnapshot(
       jaSemeou = true;
       const lote = db.batch();
       ["Diesel", "Gasolina", "Álcool"].forEach((nome) => {
-        lote.set(db.collection("tipos_lancamento").doc(), { nome, ativo: true });
+        lote.set(db.collection("tipos_lancamento").doc(), { nome, ativo: true, combustivel: true });
       });
       await lote.commit();
       return;
@@ -34,6 +34,7 @@ function renderizarLista() {
       <div class="item-lista">
         <div class="item-lista-info">
           <span class="item-lista-titulo">${t.nome}</span>
+          <span class="item-lista-sub">${t.combustivel !== false ? "Conta pra média km/L" : "Não conta pra média"}</span>
         </div>
         <span class="selo ${t.ativo ? "selo-ok" : "selo-neutro"}" style="cursor:pointer" onclick="alternarAtivo('${t.id}', ${!t.ativo})">${t.ativo ? "Ativo" : "Inativo"}</span>
       </div>`
@@ -43,6 +44,7 @@ function renderizarLista() {
 
 function abrirFormulario() {
   document.getElementById("campoNomeTipo").value = "";
+  document.getElementById("campoEhCombustivel").checked = true;
   document.getElementById("folhaTipo").classList.add("aberta");
 }
 
@@ -52,12 +54,13 @@ function fecharFormulario() {
 
 async function salvarTipo() {
   const nome = document.getElementById("campoNomeTipo").value.trim();
+  const combustivel = document.getElementById("campoEhCombustivel").checked;
   if (!nome) {
     avisar("Atenção", "Informe o nome do tipo de despesa");
     return;
   }
   try {
-    await db.collection("tipos_lancamento").add({ nome, ativo: true });
+    await db.collection("tipos_lancamento").add({ nome, ativo: true, combustivel });
     fecharFormulario();
   } catch (erro) {
     avisar("Erro ao salvar", erro.message);

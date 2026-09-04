@@ -97,7 +97,7 @@ function montarLinhasAbastecimento() {
     Data: a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "",
     Caminhão: a.caminhao || "",
     Motorista: a.motorista_id || "",
-    Tipo: a.tipo || "",
+    Tipo: a.tipo_resumo || a.tipo || "",
     Litros: a.litros || 0,
     "Valor (R$)": a.valor || 0,
     "KM no abastecimento": a.km_atual || 0,

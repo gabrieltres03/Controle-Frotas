@@ -4,4 +4,11 @@ if ("serviceWorker" in navigator) {
       console.warn("Não deu pra registrar o service worker:", erro.message);
     });
   });
+
+  let jaRecarregou = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (jaRecarregou) return;
+    jaRecarregou = true;
+    window.location.reload();
+  });
 }

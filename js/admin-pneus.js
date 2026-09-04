@@ -176,29 +176,41 @@ async function registrarHistorico(itemId, posicao, tipoEvento) {
 }
 
 async function instalarPneu(chave) {
-  const loteId = document.getElementById("selectInstalar").value;
-  const loteRef = db.collection("itens").doc(loteId);
-  const lote = (await loteRef.get()).data();
+  const itemId = document.getElementById("selectInstalar").value;
+  const itemRef = db.collection("itens").doc(itemId);
+  const item = (await itemRef.get()).data();
 
-  const novoItemRef = db.collection("itens").doc();
-  const lote_operacao = db.batch();
-  lote_operacao.update(loteRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
-  lote_operacao.set(novoItemRef, {
-    tipo: "pneu",
-    codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
-    marca: lote.marca || "",
-    tipo_pneu: lote.tipo_pneu || "",
-    custo_unitario: lote.custo_unitario || 0,
-    status: "em_uso",
-    caminhao_atual: caminhaoAtual.placa,
-    posicao: chave,
-    km_instalacao: caminhaoAtual.km_atual,
-    km_acumulado: 0,
-    origem_estoque_id: loteId,
-  });
-  await lote_operacao.commit();
-
-  await registrarHistorico(novoItemRef.id, chave, "instalado");
+  if (item.origem_estoque_id) {
+    // já é um pneu individual (voltou pro estoque uma vez) — reinstala ele mesmo,
+    // sem gerar código novo nem tocar em nenhum lote, pra não perder o histórico de KM dele.
+    await itemRef.update({
+      status: "em_uso",
+      caminhao_atual: caminhaoAtual.placa,
+      posicao: chave,
+      km_instalacao: caminhaoAtual.km_atual,
+    });
+    await registrarHistorico(itemId, chave, "instalado");
+  } else {
+    // é um lote fresco de estoque — consome 1 unidade e nasce um pneu individual novo
+    const novoItemRef = db.collection("itens").doc();
+    const lote_operacao = db.batch();
+    lote_operacao.update(itemRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
+    lote_operacao.set(novoItemRef, {
+      tipo: "pneu",
+      codigo: `${item.codigo}-${gerarSufixoUnico()}`,
+      marca: item.marca || "",
+      tipo_pneu: item.tipo_pneu || "",
+      custo_unitario: item.custo_unitario || 0,
+      status: "em_uso",
+      caminhao_atual: caminhaoAtual.placa,
+      posicao: chave,
+      km_instalacao: caminhaoAtual.km_atual,
+      km_acumulado: 0,
+      origem_estoque_id: itemId,
+    });
+    await lote_operacao.commit();
+    await registrarHistorico(novoItemRef.id, chave, "instalado");
+  }
   fecharSlot();
 }
 
@@ -211,6 +223,7 @@ async function removerPneu(chave) {
     posicao: null,
     km_instalacao: null,
     km_acumulado: novoAcumulado,
+    quantidade: 1,
   });
   await registrarHistorico(item.id, chave, "removido");
   fecharSlot();
@@ -231,6 +244,7 @@ async function darPerda(chave) {
     posicao: null,
     km_instalacao: null,
     km_acumulado: novoAcumulado,
+    quantidade: 0,
   });
   await registrarHistorico(item.id, chave, "perda");
   fecharSlot();

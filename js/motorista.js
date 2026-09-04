@@ -18,7 +18,6 @@ auth.onAuthStateChanged(async (usuario) => {
   ativarMascaraNumerica(document.getElementById("campoKmAtual"));
   ativarMascaraNumerica(document.getElementById("campoValor"));
   ativarMascaraNumerica(document.getElementById("campoValorRefeicao"));
-  ativarMascaraNumerica(document.getElementById("campoValorOutra"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoRestaurante"));
   ativarCapitalizacaoAutomatica(document.getElementById("campoLocalRefeicao"));
   await carregarPerfil();
@@ -91,12 +90,47 @@ function carregarCatalogoAbastecimento() {
     .where("ativo", "==", true)
     .orderBy("nome")
     .onSnapshot((snapshot) => {
-      catalogoDespesas = snapshot.docs.map((d) => ({ id: d.id, nome: d.data().nome }));
-      const select = document.getElementById("campoTipoAbastecimento");
-      const atual = select.value;
-      select.innerHTML = '<option value="">Selecione</option>' + catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
-      if (Array.from(select.options).some((o) => o.value === atual)) select.value = atual;
+      catalogoDespesas = snapshot.docs.map((d) => ({ id: d.id, nome: d.data().nome, combustivel: d.data().combustivel !== false }));
+
+      document.querySelectorAll("#listaItensAbastecimento .item-tipo").forEach((select) => {
+        const atual = select.value;
+        select.innerHTML = catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
+        if (Array.from(select.options).some((o) => o.value === atual)) select.value = atual;
+      });
+
+      if (document.getElementById("listaItensAbastecimento").children.length === 0) {
+        adicionarItemAbastecimento();
+      }
     });
+}
+
+function adicionarItemAbastecimento(tipoId) {
+  const container = document.getElementById("listaItensAbastecimento");
+  const opcoes = catalogoDespesas.map((c) => `<option value="${c.id}">${c.nome}</option>`).join("");
+
+  const linha = document.createElement("div");
+  linha.className = "linha-eixo";
+  linha.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:6px; flex:1">
+      <select class="item-tipo">${opcoes}</select>
+      <input type="text" inputmode="decimal" class="item-quantidade" placeholder="Quantidade" />
+    </div>
+    <button class="botao-remover-eixo" type="button" onclick="this.parentElement.remove()">&times;</button>
+  `;
+  if (tipoId) linha.querySelector(".item-tipo").value = tipoId;
+  ativarMascaraNumerica(linha.querySelector(".item-quantidade"));
+  container.appendChild(linha);
+}
+
+function lerItensAbastecimento() {
+  return Array.from(document.querySelectorAll("#listaItensAbastecimento .linha-eixo"))
+    .map((linha) => {
+      const tipoId = linha.querySelector(".item-tipo").value;
+      const info = catalogoDespesas.find((c) => c.id === tipoId) || {};
+      const quantidade = lerNumeroBR(linha.querySelector(".item-quantidade").value);
+      return { tipo: info.nome || tipoId, combustivel: info.combustivel !== false, quantidade };
+    })
+    .filter((item) => item.quantidade > 0);
 }
 
 // ---------- abastecimento + fila offline ----------
@@ -146,18 +180,18 @@ async function lancarAbastecimento() {
       : "Você não tem veículo vinculado, fale com o admin.";
     return;
   }
-  const tipoId = document.getElementById("campoTipoAbastecimento").value;
-  const litros = Number(document.getElementById("campoLitros").value);
+  const itens = lerItensAbastecimento();
   const kmAtual = lerNumeroBR(document.getElementById("campoKmAtual").value);
   const valor = lerNumeroBR(document.getElementById("campoValor").value);
   const observacao = document.getElementById("campoObsAbastecimento").value.trim();
   const arquivoNota = document.getElementById("campoFotoNota").files[0];
 
-  if (!tipoId || !litros || !kmAtual || !arquivoNota) {
-    document.getElementById("mensagemAbastecimento").textContent = "Selecione o tipo, preencha quantidade, KM e anexe a foto da nota.";
+  if (itens.length === 0 || !kmAtual || !arquivoNota) {
+    document.getElementById("mensagemAbastecimento").textContent = "Adicione ao menos um item com quantidade, preencha o KM e anexe a foto da nota.";
     return;
   }
-  const tipoNome = (catalogoDespesas.find((c) => c.id === tipoId) || {}).nome || tipoId;
+  const litrosCombustivel = itens.filter((i) => i.combustivel).reduce((soma, i) => soma + i.quantidade, 0);
+  const tipoResumo = itens.map((i) => i.tipo).join(" + ");
 
   const botao = document.getElementById("botaoLancarAbastecimento");
   botao.disabled = true;
@@ -178,8 +212,9 @@ async function lancarAbastecimento() {
     const registro = {
       caminhao: veiculoAtivo,
       motorista_id: motoristaId,
-      tipo: tipoNome,
-      litros,
+      itens,
+      tipo_resumo: tipoResumo,
+      litros: litrosCombustivel,
       km_atual: kmAtual,
       valor: valor || 0,
       observacao,
@@ -225,8 +260,8 @@ async function lancarAbastecimento() {
 }
 
 function limparFormularioAbastecimento(mensagem) {
-  document.getElementById("campoTipoAbastecimento").value = "";
-  document.getElementById("campoLitros").value = "";
+  document.getElementById("listaItensAbastecimento").innerHTML = "";
+  adicionarItemAbastecimento();
   document.getElementById("campoKmAtual").value = "";
   document.getElementById("campoValor").value = "";
   document.getElementById("campoObsAbastecimento").value = "";
@@ -351,7 +386,8 @@ async function sincronizarFila() {
         await db.collection("abastecimentos").add({
           caminhao: registro.caminhao,
           motorista_id: registro.motorista_id,
-          tipo: registro.tipo,
+          itens: registro.itens,
+          tipo_resumo: registro.tipo_resumo,
           litros: registro.litros,
           km_atual: registro.km_atual,
           valor: registro.valor,
@@ -403,7 +439,7 @@ function carregarHistorico() {
             return `
               <div class="item-lista">
                 <div class="item-lista-info">
-                  <span class="item-lista-titulo">${a.tipo || "Abastecimento"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
+                  <span class="item-lista-titulo">${a.tipo_resumo || a.tipo || "Abastecimento"} · ${a.litros} L · R$ ${Number(a.valor).toFixed(2)}</span>
                   <span class="item-lista-sub">${a.caminhao || "—"} · ${data}${horaFoto ? " às " + horaFoto : ""} · ${a.km_atual.toLocaleString("pt-BR")} km · ${media}${obs}</span>
                 </div>
                 ${a.nota_pdf ? `<button class="botao-linha" style="height:32px; padding:0 10px; font-size:12px; white-space:nowrap" onclick="abrirPdfBase64(cachePdfHistorico['${doc.id}'], 'nota-${doc.id}.pdf')">ver nota</button>` : ""}
@@ -616,68 +652,118 @@ async function registrarHistoricoMotorista(itemId, posicao, tipoEvento) {
 }
 
 async function instalarComoMotorista(chave) {
-  const loteId = document.getElementById("selectInstalarMotorista").value;
-  const loteRef = db.collection("itens").doc(loteId);
-  const lote = (await loteRef.get()).data();
+  const itemId = document.getElementById("selectInstalarMotorista").value;
+  const itemRef = db.collection("itens").doc(itemId);
+  const item = (await itemRef.get()).data();
 
-  const novoItemRef = db.collection("itens").doc();
-  const lote_operacao = db.batch();
-  lote_operacao.update(loteRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
-  lote_operacao.set(novoItemRef, {
-    tipo: "pneu",
-    codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
-    marca: lote.marca || "",
-    tipo_pneu: lote.tipo_pneu || "",
-    custo_unitario: lote.custo_unitario || 0,
-    status: "em_uso",
-    caminhao_atual: veiculoAtivo,
-    posicao: chave,
-    km_instalacao: caminhaoAtualDados.km_atual,
-    km_acumulado: 0,
-    origem_estoque_id: loteId,
-  });
-  await lote_operacao.commit();
-
-  await registrarHistoricoMotorista(novoItemRef.id, chave, "instalado");
+  if ((item.quantidade || 1) > 1) {
+    const novoItemRef = db.collection("itens").doc();
+    const lote_operacao = db.batch();
+    lote_operacao.update(itemRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
+    lote_operacao.set(novoItemRef, {
+      tipo: "pneu",
+      codigo: `${item.codigo}-${gerarSufixoUnico()}`,
+      codigo_base: item.codigo_base || item.codigo,
+      marca: item.marca || "",
+      tipo_pneu: item.tipo_pneu || "",
+      custo_unitario: item.custo_unitario || 0,
+      status: "em_uso",
+      caminhao_atual: veiculoAtivo,
+      posicao: chave,
+      km_instalacao: caminhaoAtualDados.km_atual,
+      km_acumulado: item.km_acumulado || 0,
+      origem_estoque_id: itemId,
+    });
+    await lote_operacao.commit();
+    await registrarHistoricoMotorista(novoItemRef.id, chave, "instalado");
+  } else {
+    await itemRef.update({
+      status: "em_uso",
+      caminhao_atual: veiculoAtivo,
+      posicao: chave,
+      km_instalacao: caminhaoAtualDados.km_atual,
+    });
+    await registrarHistoricoMotorista(itemId, chave, "instalado");
+  }
   fecharSlot();
+}
+
+async function tentarFundirComEstoqueMotorista(item, novoAcumulado) {
+  const candidatos = await db
+    .collection("itens")
+    .where("tipo", "==", "pneu")
+    .where("status", "==", "estoque")
+    .where("marca", "==", item.marca || "")
+    .get();
+
+  const baseAtual = item.codigo_base || item.codigo;
+  const gemeo = candidatos.docs.find((d) => {
+    if (d.id === item.id) return false;
+    const dados = d.data();
+    return (dados.codigo_base || dados.codigo) === baseAtual && dados.tipo_pneu === item.tipo_pneu && (dados.km_acumulado || 0) === novoAcumulado;
+  });
+
+  if (!gemeo) return false;
+
+  const lote = db.batch();
+  lote.update(db.collection("itens").doc(gemeo.id), { quantidade: firebase.firestore.FieldValue.increment(item.quantidade || 1) });
+  lote.delete(db.collection("itens").doc(item.id));
+  await lote.commit();
+  return true;
 }
 
 async function trocarPorEstepe(chave) {
   const itemFurado = itensDoCaminhao[chave];
-  const loteId = document.getElementById("selectTrocaMotorista").value;
-  const loteRef = db.collection("itens").doc(loteId);
-  const lote = (await loteRef.get()).data();
+  const novoId = document.getElementById("selectTrocaMotorista").value;
+  const novoRef = db.collection("itens").doc(novoId);
+  const novo = (await novoRef.get()).data();
   const novoAcumuladoFurado = kmEstimado(itemFurado);
 
-  const novoItemRef = db.collection("itens").doc();
+  const fundiu = await tentarFundirComEstoqueMotorista({ ...itemFurado, id: itemFurado.id }, novoAcumuladoFurado);
+  if (!fundiu) {
+    await db.collection("itens").doc(itemFurado.id).update({
+      status: "estoque",
+      caminhao_atual: null,
+      posicao: null,
+      km_instalacao: null,
+      km_acumulado: novoAcumuladoFurado,
+      quantidade: 1,
+      observacoes: (itemFurado.observacoes || "") + " (furou - aguardando reparo)",
+    });
+  }
+
   const lote_operacao = db.batch();
-  lote_operacao.update(db.collection("itens").doc(itemFurado.id), {
-    status: "estoque",
-    caminhao_atual: null,
-    posicao: null,
-    km_instalacao: null,
-    km_acumulado: novoAcumuladoFurado,
-    quantidade: 1,
-    observacoes: (itemFurado.observacoes || "") + " (furou - aguardando reparo)",
-  });
-  lote_operacao.update(loteRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
-  lote_operacao.set(novoItemRef, {
-    tipo: "pneu",
-    codigo: `${lote.codigo}-${gerarSufixoUnico()}`,
-    marca: lote.marca || "",
-    tipo_pneu: lote.tipo_pneu || "",
-    custo_unitario: lote.custo_unitario || 0,
-    status: "em_uso",
-    caminhao_atual: veiculoAtivo,
-    posicao: chave,
-    km_instalacao: caminhaoAtualDados.km_atual,
-    km_acumulado: 0,
-    origem_estoque_id: loteId,
-  });
+  let idInstalado = novoId;
+  if ((novo.quantidade || 1) > 1) {
+    const novoItemRef = db.collection("itens").doc();
+    idInstalado = novoItemRef.id;
+    lote_operacao.update(novoRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
+    lote_operacao.set(novoItemRef, {
+      tipo: "pneu",
+      codigo: `${novo.codigo}-${gerarSufixoUnico()}`,
+      codigo_base: novo.codigo_base || novo.codigo,
+      marca: novo.marca || "",
+      tipo_pneu: novo.tipo_pneu || "",
+      custo_unitario: novo.custo_unitario || 0,
+      status: "em_uso",
+      caminhao_atual: veiculoAtivo,
+      posicao: chave,
+      km_instalacao: caminhaoAtualDados.km_atual,
+      km_acumulado: novo.km_acumulado || 0,
+      origem_estoque_id: novoId,
+    });
+  } else {
+    lote_operacao.update(novoRef, {
+      status: "em_uso",
+      caminhao_atual: veiculoAtivo,
+      posicao: chave,
+      km_instalacao: caminhaoAtualDados.km_atual,
+    });
+  }
   await lote_operacao.commit();
 
   await registrarHistoricoMotorista(itemFurado.id, chave, "removido");
-  await registrarHistoricoMotorista(novoItemRef.id, chave, "instalado");
+  await registrarHistoricoMotorista(idInstalado, chave, "instalado");
   fecharSlot();
 }
 
