@@ -114,11 +114,19 @@ function adicionarItemAbastecimento(tipoId) {
     <div style="display:flex; flex-direction:column; gap:6px; flex:1">
       <select class="item-tipo">${opcoes}</select>
       <input type="text" inputmode="decimal" class="item-quantidade" placeholder="Quantidade" />
+      <input type="text" inputmode="decimal" class="item-valor-unitario" placeholder="Valor unitário (R$)" />
     </div>
-    <button class="botao-remover-eixo" type="button" onclick="this.parentElement.remove()">&times;</button>
+    <button class="botao-remover-eixo" type="button" onclick="this.parentElement.remove(); atualizarValorTotalAbastecimento();">&times;</button>
   `;
   if (tipoId) linha.querySelector(".item-tipo").value = tipoId;
-  ativarMascaraNumerica(linha.querySelector(".item-quantidade"));
+
+  const campoQtd = linha.querySelector(".item-quantidade");
+  const campoValorUn = linha.querySelector(".item-valor-unitario");
+  ativarMascaraNumerica(campoQtd);
+  ativarMascaraNumerica(campoValorUn);
+  campoQtd.addEventListener("input", atualizarValorTotalAbastecimento);
+  campoValorUn.addEventListener("input", atualizarValorTotalAbastecimento);
+
   container.appendChild(linha);
 }
 
@@ -128,9 +136,21 @@ function lerItensAbastecimento() {
       const tipoId = linha.querySelector(".item-tipo").value;
       const info = catalogoDespesas.find((c) => c.id === tipoId) || {};
       const quantidade = lerNumeroBR(linha.querySelector(".item-quantidade").value);
-      return { tipo: info.nome || tipoId, combustivel: info.combustivel !== false, quantidade };
+      const valorUnitario = lerNumeroBR(linha.querySelector(".item-valor-unitario").value);
+      return {
+        tipo: info.nome || tipoId,
+        combustivel: info.combustivel !== false,
+        quantidade,
+        valor_unitario: valorUnitario,
+        valor: quantidade * valorUnitario,
+      };
     })
     .filter((item) => item.quantidade > 0);
+}
+
+function atualizarValorTotalAbastecimento() {
+  const total = lerItensAbastecimento().reduce((soma, item) => soma + item.valor, 0);
+  document.getElementById("campoValor").value = formatarNumeroBR(total);
 }
 
 // ---------- abastecimento + fila offline ----------
@@ -182,7 +202,7 @@ async function lancarAbastecimento() {
   }
   const itens = lerItensAbastecimento();
   const kmAtual = lerNumeroBR(document.getElementById("campoKmAtual").value);
-  const valor = lerNumeroBR(document.getElementById("campoValor").value);
+  const valor = itens.reduce((soma, item) => soma + item.valor, 0);
   const observacao = document.getElementById("campoObsAbastecimento").value.trim();
   const arquivoNota = document.getElementById("campoFotoNota").files[0];
 
@@ -262,8 +282,8 @@ async function lancarAbastecimento() {
 function limparFormularioAbastecimento(mensagem) {
   document.getElementById("listaItensAbastecimento").innerHTML = "";
   adicionarItemAbastecimento();
+  atualizarValorTotalAbastecimento();
   document.getElementById("campoKmAtual").value = "";
-  document.getElementById("campoValor").value = "";
   document.getElementById("campoObsAbastecimento").value = "";
   document.getElementById("campoFotoNota").value = "";
   document.getElementById("mensagemAbastecimento").textContent = mensagem;
