@@ -134,12 +134,12 @@ function lerNumeroBR(valorFormatado) {
   return parseFloat(valorFormatado.replace(/\./g, "").replace(",", ".")) || 0;
 }
 
-function ativarMascaraNumerica(input) {
+function ativarMascaraNumerica(input, casasDecimais = 2) {
   input.addEventListener("input", () => {
     let bruto = input.value.replace(/[^\d,]/g, "");
     const partes = bruto.split(",");
     let inteiro = partes[0].replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    let resultado = inteiro + (partes.length > 1 ? "," + partes[1].slice(0, 2) : "");
+    let resultado = inteiro + (partes.length > 1 ? "," + partes[1].slice(0, casasDecimais) : "");
     input.value = resultado;
     input.setSelectionRange(input.value.length, input.value.length);
   });

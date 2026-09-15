@@ -122,7 +122,7 @@ function adicionarItemAbastecimento(tipoId) {
 
   const campoQtd = linha.querySelector(".item-quantidade");
   const campoValorUn = linha.querySelector(".item-valor-unitario");
-  ativarMascaraNumerica(campoQtd);
+  ativarMascaraNumerica(campoQtd, 3);
   ativarMascaraNumerica(campoValorUn);
   campoQtd.addEventListener("input", atualizarValorTotalAbastecimento);
   campoValorUn.addEventListener("input", atualizarValorTotalAbastecimento);
