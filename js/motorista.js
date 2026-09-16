@@ -178,7 +178,7 @@ function atualizarBadgePendentes() {
   }
 }
 
-async function calcularMedia(caminhao, kmAtual) {
+async function calcularMedia(caminhao, kmAtual, litrosAtual) {
   const ultimo = await db
     .collection("abastecimentos")
     .where("caminhao", "==", caminhao)
@@ -188,9 +188,8 @@ async function calcularMedia(caminhao, kmAtual) {
   if (ultimo.empty) return null;
   const anterior = ultimo.docs[0].data();
   const kmRodado = kmAtual - anterior.km_atual;
-  const litrosAnterior = anterior.litros;
-  if (kmRodado <= 0 || !litrosAnterior) return null;
-  return kmRodado / litrosAnterior;
+  if (kmRodado <= 0 || !litrosAtual) return null;
+  return kmRodado / litrosAtual;
 }
 
 async function lancarAbastecimento() {
@@ -247,7 +246,7 @@ async function lancarAbastecimento() {
 
     try {
       if (!navigator.onLine) throw new Error("offline");
-      const media = await calcularMedia(veiculoAtivo, kmAtual);
+      const media = await calcularMedia(veiculoAtivo, kmAtual, litrosCombustivel);
       await db.collection("abastecimentos").add({
         ...registro,
         media,
@@ -402,7 +401,7 @@ async function sincronizarFila() {
     const restantes = [];
     for (const registro of fila) {
       try {
-        const media = await calcularMedia(registro.caminhao, registro.km_atual);
+        const media = await calcularMedia(registro.caminhao, registro.km_atual, registro.litros);
         await db.collection("abastecimentos").add({
           caminhao: registro.caminhao,
           motorista_id: registro.motorista_id,
