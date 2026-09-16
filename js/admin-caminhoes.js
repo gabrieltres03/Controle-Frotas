@@ -62,6 +62,9 @@ function mudarEstrutura(valor) {
   document.getElementById("selectCavalo").value = "";
   document.getElementById("listaEixos").innerHTML = "";
 
+  const estepesPadrao = { veiculo: 1, truck: 1, bitruck: 2, carreta: 1 };
+  if (estepesPadrao[valor] !== undefined) document.getElementById("campoEstepes").value = estepesPadrao[valor];
+
   if (valor === "truck") montarTruck();
   else if (valor === "bitruck") BITRUCK_EIXOS.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
   else if (valor === "veiculo") VEICULO_EIXOS.forEach((e) => adicionarEixo(e.tipo, e.classificacao));
@@ -190,6 +193,17 @@ function atualizarPreviewMapa() {
         </div>`;
     });
   });
+
+  const qtdEstepes = Number(document.getElementById("campoEstepes").value) || 0;
+  if (qtdEstepes > 0) {
+    const selosEstepe = Array.from({ length: qtdEstepes }, (_, i) => `<span class="selo selo-neutro">Estepe ${i + 1}</span>`).join("");
+    html += `
+      <div class="cartao-eixo" style="padding:10px 12px; margin-bottom:0">
+        <div class="cartao-eixo-titulo" style="margin-bottom:6px">Estepes</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap">${selosEstepe}</div>
+      </div>`;
+  }
+
   container.innerHTML = html;
 }
 
@@ -245,6 +259,7 @@ function abrirFormulario(placa) {
     document.getElementById("campoNome").value = c.nome || "";
     document.getElementById("campoCarroceria").value = c.tipo_carroceria || "graneleiro";
     document.getElementById("campoKm").value = formatarNumeroBR(c.km_atual);
+    document.getElementById("campoEstepes").value = c.qtd_estepes ?? 1;
     reconstruirGruposParaEdicao(c.eixos || []).forEach((g) => adicionarEixo(g.tipo, g.classificacao));
   } else {
     document.getElementById("tituloFolha").textContent = "Novo veículo";
@@ -253,6 +268,7 @@ function abrirFormulario(placa) {
     document.getElementById("campoNome").value = "";
     document.getElementById("campoCarroceria").value = "graneleiro";
     document.getElementById("campoKm").value = "";
+    document.getElementById("campoEstepes").value = 1;
     adicionarEixo("direcao", "singela_simples");
     adicionarEixo("tracao", "singela_dupla");
   }
@@ -269,6 +285,7 @@ async function salvarCaminhao() {
   const nome = document.getElementById("campoNome").value.trim();
   const tipoCarroceria = document.getElementById("campoCarroceria").value;
   const kmAtual = lerNumeroBR(document.getElementById("campoKm").value);
+  const qtdEstepes = Number(document.getElementById("campoEstepes").value) || 0;
   const eixos = lerEixosDoFormulario();
 
   if (!placa) {
@@ -282,7 +299,7 @@ async function salvarCaminhao() {
 
   try {
     await db.collection("caminhoes").doc(placa).set(
-      { nome, tipo_carroceria: tipoCarroceria, km_atual: kmAtual, eixos, ativo: true },
+      { nome, tipo_carroceria: tipoCarroceria, km_atual: kmAtual, qtd_estepes: qtdEstepes, eixos, ativo: true },
       { merge: true }
     );
     fecharFormulario();

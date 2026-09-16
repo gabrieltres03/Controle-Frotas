@@ -1,4 +1,4 @@
-const CACHE_NAME = "frota-cache-v15";
+const CACHE_NAME = "frota-cache-v16";
 
 const ARQUIVOS_APP = [
   "./",

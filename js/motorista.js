@@ -518,7 +518,7 @@ function carregarDespesas() {
 
 // ---------- mapa de pneus (estepe / inversão) ----------
 
-function gerarPosicoes(eixos) {
+function gerarPosicoes(eixos, qtdEstepes) {
   const posicoes = [];
   eixos.forEach((eixo, i) => {
     const n = i + 1;
@@ -533,6 +533,9 @@ function gerarPosicoes(eixos) {
       posicoes.push({ chave: `eixo${n}-esq`, rotulo: "Esquerdo", lado: "esq" }, { chave: `eixo${n}-dir`, rotulo: "Direito", lado: "dir" });
     }
   });
+  for (let i = 1; i <= (qtdEstepes || 0); i++) {
+    posicoes.push({ chave: `estepe-${i}`, rotulo: `Estepe ${i}`, lado: "estepe" });
+  }
   return posicoes;
 }
 
@@ -569,7 +572,7 @@ function kmEstimado(item) {
 
 function renderizarMapaMotorista() {
   const eixos = caminhaoAtualDados.eixos || [];
-  const posicoes = gerarPosicoes(eixos);
+  const posicoes = gerarPosicoes(eixos, caminhaoAtualDados.qtd_estepes);
   const container = document.getElementById("mapaEixosMotorista");
   container.innerHTML = "";
 
@@ -590,6 +593,19 @@ function renderizarMapaMotorista() {
     `;
     container.appendChild(cartao);
   });
+
+  const posicoesEstepe = posicoes.filter((p) => p.lado === "estepe");
+  if (posicoesEstepe.length > 0) {
+    const cartaoEstepe = document.createElement("div");
+    cartaoEstepe.className = "cartao-eixo";
+    cartaoEstepe.innerHTML = `
+      <div class="cartao-eixo-titulo">Estepes</div>
+      <div class="linhas-lados">
+        <div class="lado-grupo">${posicoesEstepe.map(renderizarSlotMotorista).join("")}</div>
+      </div>
+    `;
+    container.appendChild(cartaoEstepe);
+  }
 }
 
 function renderizarSlotMotorista(posicao) {

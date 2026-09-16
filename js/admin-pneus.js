@@ -16,7 +16,7 @@ db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot
   if (atual) select.value = atual;
 });
 
-function gerarPosicoes(eixos) {
+function gerarPosicoes(eixos, qtdEstepes) {
   const posicoes = [];
   eixos.forEach((eixo, i) => {
     const n = i + 1;
@@ -34,6 +34,9 @@ function gerarPosicoes(eixos) {
       );
     }
   });
+  for (let i = 1; i <= (qtdEstepes || 0); i++) {
+    posicoes.push({ chave: `estepe-${i}`, rotulo: `Estepe ${i}`, lado: "estepe" });
+  }
   return posicoes;
 }
 
@@ -69,7 +72,7 @@ function kmEstimado(item) {
 
 function renderizarMapa() {
   const eixos = caminhaoAtual.eixos || [];
-  const posicoes = gerarPosicoes(eixos);
+  const posicoes = gerarPosicoes(eixos, caminhaoAtual.qtd_estepes);
   const container = document.getElementById("mapaEixos");
   container.innerHTML = "";
 
@@ -90,6 +93,19 @@ function renderizarMapa() {
     `;
     container.appendChild(cartao);
   });
+
+  const posicoesEstepe = posicoes.filter((p) => p.lado === "estepe");
+  if (posicoesEstepe.length > 0) {
+    const cartaoEstepe = document.createElement("div");
+    cartaoEstepe.className = "cartao-eixo";
+    cartaoEstepe.innerHTML = `
+      <div class="cartao-eixo-titulo">Estepes</div>
+      <div class="linhas-lados">
+        <div class="lado-grupo">${posicoesEstepe.map(renderizarSlot).join("")}</div>
+      </div>
+    `;
+    container.appendChild(cartaoEstepe);
+  }
 }
 
 function renderizarSlot(posicao) {
