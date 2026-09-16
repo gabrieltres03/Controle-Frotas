@@ -6,7 +6,7 @@ let slotAberto = null;
 db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot((snapshot) => {
   const select = document.getElementById("selectCaminhao");
   const atual = select.value;
-  select.innerHTML = '<option value="">Selecione um caminhão</option>';
+  select.innerHTML = '<option value="">Selecione um veículo</option>';
   snapshot.docs.forEach((doc) => {
     const opcao = document.createElement("option");
     opcao.value = doc.id;
@@ -180,24 +180,15 @@ async function instalarPneu(chave) {
   const itemRef = db.collection("itens").doc(itemId);
   const item = (await itemRef.get()).data();
 
-  if (item.origem_estoque_id) {
-    // já é um pneu individual (voltou pro estoque uma vez) — reinstala ele mesmo,
-    // sem gerar código novo nem tocar em nenhum lote, pra não perder o histórico de KM dele.
-    await itemRef.update({
-      status: "em_uso",
-      caminhao_atual: caminhaoAtual.placa,
-      posicao: chave,
-      km_instalacao: caminhaoAtual.km_atual,
-    });
-    await registrarHistorico(itemId, chave, "instalado");
-  } else {
-    // é um lote fresco de estoque — consome 1 unidade e nasce um pneu individual novo
+  if ((item.quantidade || 1) > 1) {
+    // grupo com mais de 1 unidade (lote fresco ou pneus usados fundidos) — consome 1 e nasce um item individual
     const novoItemRef = db.collection("itens").doc();
     const lote_operacao = db.batch();
     lote_operacao.update(itemRef, { quantidade: firebase.firestore.FieldValue.increment(-1) });
     lote_operacao.set(novoItemRef, {
       tipo: "pneu",
       codigo: `${item.codigo}-${gerarSufixoUnico()}`,
+      codigo_base: item.codigo_base || item.codigo,
       marca: item.marca || "",
       tipo_pneu: item.tipo_pneu || "",
       custo_unitario: item.custo_unitario || 0,
@@ -205,26 +196,64 @@ async function instalarPneu(chave) {
       caminhao_atual: caminhaoAtual.placa,
       posicao: chave,
       km_instalacao: caminhaoAtual.km_atual,
-      km_acumulado: 0,
+      km_acumulado: item.km_acumulado || 0,
       origem_estoque_id: itemId,
     });
     await lote_operacao.commit();
     await registrarHistorico(novoItemRef.id, chave, "instalado");
+  } else {
+    // única unidade — reinstala o mesmo item, sem gerar código novo
+    await itemRef.update({
+      status: "em_uso",
+      caminhao_atual: caminhaoAtual.placa,
+      posicao: chave,
+      km_instalacao: caminhaoAtual.km_atual,
+    });
+    await registrarHistorico(itemId, chave, "instalado");
   }
   fecharSlot();
+}
+
+async function tentarFundirComEstoque(item, novoAcumulado) {
+  const candidatos = await db
+    .collection("itens")
+    .where("tipo", "==", "pneu")
+    .where("status", "==", "estoque")
+    .where("marca", "==", item.marca || "")
+    .get();
+
+  const baseAtual = item.codigo_base || item.codigo;
+  const gemeo = candidatos.docs.find((d) => {
+    if (d.id === item.id) return false;
+    const dados = d.data();
+    return (dados.codigo_base || dados.codigo) === baseAtual && dados.tipo_pneu === item.tipo_pneu && (dados.km_acumulado || 0) === novoAcumulado;
+  });
+
+  if (!gemeo) return false;
+
+  const lote = db.batch();
+  lote.update(db.collection("itens").doc(gemeo.id), { quantidade: firebase.firestore.FieldValue.increment(item.quantidade || 1) });
+  lote.delete(db.collection("itens").doc(item.id));
+  await lote.commit();
+  return true;
 }
 
 async function removerPneu(chave) {
   const item = itensDoCaminhao[chave];
   const novoAcumulado = kmEstimado(item);
-  await db.collection("itens").doc(item.id).update({
-    status: "estoque",
-    caminhao_atual: null,
-    posicao: null,
-    km_instalacao: null,
-    km_acumulado: novoAcumulado,
-    quantidade: 1,
-  });
+
+  const fundiu = await tentarFundirComEstoque({ ...item, id: item.id }, novoAcumulado);
+  if (!fundiu) {
+    await db.collection("itens").doc(item.id).update({
+      status: "estoque",
+      caminhao_atual: null,
+      posicao: null,
+      km_instalacao: null,
+      km_acumulado: novoAcumulado,
+      quantidade: 1,
+    });
+  }
+
   await registrarHistorico(item.id, chave, "removido");
   fecharSlot();
 }

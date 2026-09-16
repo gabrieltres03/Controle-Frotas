@@ -95,7 +95,7 @@ function renderizarResumo() {
 function montarLinhasAbastecimento() {
   return abastecimentosFiltrados.map((a) => ({
     Data: a.data ? a.data.toDate().toLocaleDateString("pt-BR") : "",
-    Caminhão: a.caminhao || "",
+    Veículo: a.caminhao || "",
     Motorista: a.motorista_id || "",
     Tipo: a.tipo_resumo || a.tipo || "",
     Litros: a.litros || 0,
@@ -110,7 +110,7 @@ function montarLinhasPneus() {
     Código: p.codigo,
     Tipo: p.tipo_pneu || "",
     Status: p.status,
-    Caminhão: p.caminhao_atual || "—",
+    Veículo: p.caminhao_atual || "—",
     "KM acumulado": p.km_acumulado || 0,
   }));
 }
@@ -118,7 +118,7 @@ function montarLinhasPneus() {
 function montarLinhasDespesas() {
   return despesasFiltradas.map((d) => ({
     Data: d.data ? d.data.toDate().toLocaleDateString("pt-BR") : "",
-    Caminhão: d.caminhao || "",
+    Veículo: d.caminhao || "",
     Motorista: d.motorista_id || "",
     Tipo: d.tipo === "alimentacao" ? rotuloRefeicaoRelatorio(d.refeicao) : d.categoria || "Outra",
     Restaurante: d.restaurante || "",
@@ -151,8 +151,8 @@ function exportarPdf() {
 
   doc.autoTable({
     startY: 30,
-    head: [["Data", "Caminhão", "Motorista", "Tipo", "Litros", "Valor (R$)", "KM", "Média"]],
-    body: montarLinhasAbastecimento().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Tipo, l.Litros, l["Valor (R$)"], l["KM no abastecimento"], l["Média (km/L)"]]),
+    head: [["Data", "Veículo", "Motorista", "Tipo", "Litros", "Valor (R$)", "KM", "Média"]],
+    body: montarLinhasAbastecimento().map((l) => [l.Data, l.Veículo, l.Motorista, l.Tipo, l.Litros, l["Valor (R$)"], l["KM no abastecimento"], l["Média (km/L)"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });
@@ -162,8 +162,8 @@ function exportarPdf() {
   doc.text("Despesas", 14, proximaY);
   doc.autoTable({
     startY: proximaY + 4,
-    head: [["Data", "Caminhão", "Motorista", "Tipo", "Restaurante", "Local", "Obs.", "Valor (R$)"]],
-    body: montarLinhasDespesas().map((l) => [l.Data, l.Caminhão, l.Motorista, l.Tipo, l.Restaurante, l.Local, l.Observação, l["Valor (R$)"]]),
+    head: [["Data", "Veículo", "Motorista", "Tipo", "Restaurante", "Local", "Obs.", "Valor (R$)"]],
+    body: montarLinhasDespesas().map((l) => [l.Data, l.Veículo, l.Motorista, l.Tipo, l.Restaurante, l.Local, l.Observação, l["Valor (R$)"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });
@@ -173,8 +173,8 @@ function exportarPdf() {
   doc.text("Pneus", 14, proximaY);
   doc.autoTable({
     startY: proximaY + 4,
-    head: [["Código", "Tipo", "Status", "Caminhão", "KM acumulado"]],
-    body: montarLinhasPneus().map((l) => [l.Código, l.Tipo, l.Status, l.Caminhão, l["KM acumulado"]]),
+    head: [["Código", "Tipo", "Status", "Veículo", "KM acumulado"]],
+    body: montarLinhasPneus().map((l) => [l.Código, l.Tipo, l.Status, l.Veículo, l["KM acumulado"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });
