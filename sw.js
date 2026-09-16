@@ -1,4 +1,4 @@
-const CACHE_NAME = "frota-cache-v13";
+const CACHE_NAME = "frota-cache-v15";
 
 const ARQUIVOS_APP = [
   "./",
@@ -13,6 +13,7 @@ const ARQUIVOS_APP = [
   "./admin-relatorios.html",
   "./admin-tipos-lancamento.html",
   "./motorista.html",
+  "./offline.html",
   "./manifest.json",
   "./css/estilos.css",
   "./css/admin.css",
@@ -95,7 +96,16 @@ self.addEventListener("fetch", (evento) => {
           return resposta;
         })
         .catch(() => null);
-      return doCache || (await daRede) || new Response("Sem conexão", { status: 503 });
+
+      const resultado = doCache || (await daRede);
+      if (resultado) return resultado;
+
+      const ehNavegacaoDePagina = evento.request.mode === "navigate" || (evento.request.headers.get("accept") || "").includes("text/html");
+      if (ehNavegacaoDePagina) {
+        const paginaOffline = await cache.match("./offline.html");
+        if (paginaOffline) return paginaOffline;
+      }
+      return new Response("Sem conexão", { status: 503 });
     })
   );
 });

@@ -747,7 +747,7 @@ async function trocarPorEstepe(chave) {
       km_instalacao: null,
       km_acumulado: novoAcumuladoFurado,
       quantidade: 1,
-      observacoes: (itemFurado.observacoes || "") + " (furou - aguardando reparo)",
+      observacoes: `Usado — ${novoAcumuladoFurado.toLocaleString("pt-BR")} km rodados (furou - aguardando reparo)`,
     });
   }
 

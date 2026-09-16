@@ -33,7 +33,7 @@ db.collection("caminhoes").where("ativo", "==", true).orderBy("nome").onSnapshot
 function renderizarLista(lista) {
   const container = document.getElementById("listaMotoristas");
   if (lista.length === 0) {
-    container.innerHTML = '<p class="vazio">Nenhum motorista cadastrado ainda.</p>';
+    container.innerHTML = '<p class="vazio">Nenhum motorista cadastrado ainda.<br>Toque no + pra criar o primeiro.</p>';
     return;
   }
   container.innerHTML = lista

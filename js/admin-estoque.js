@@ -34,19 +34,21 @@ function renderizarLista() {
   const container = document.getElementById("listaEstoque");
 
   if (filtrados.length === 0) {
-    container.innerHTML = '<p class="vazio">Nada parado no estoque nessa categoria.</p>';
+    container.innerHTML = '<p class="vazio">Nenhum item nessa categoria ainda.<br>Toque no + pra adicionar.</p>';
     return;
   }
 
   container.innerHTML = filtrados
     .map((i) => {
-      const detalhe = i.tipo === "pneu" ? `${i.marca || "sem marca"} · ${rotuloTipoPneu(i.tipo_pneu)}` : i.observacoes || "—";
+      const detalhe = i.tipo === "pneu"
+        ? `${i.marca || "sem marca"} · ${rotuloTipoPneu(i.tipo_pneu)}${i.observacoes ? " · " + i.observacoes : ""}`
+        : i.observacoes || "—";
       const custo = i.custo_unitario ? ` · R$ ${Number(i.custo_unitario).toFixed(2)}/un` : "";
       return `
         <div class="item-lista">
           <div class="item-lista-info">
             <span class="item-lista-titulo">${i.codigo}</span>
-            <span class="item-lista-sub">${detalhe}${custo} · ${i.quantidade ?? 1} disponível${(i.quantidade ?? 1) > 1 ? "eis" : ""}</span>
+            <span class="item-lista-sub">${detalhe}${custo} · ${i.quantidade ?? 1} ${(i.quantidade ?? 1) > 1 ? "disponíveis" : "disponível"}</span>
           </div>
           <button class="botao-perigo" style="height:36px; padding:0 12px; font-size:12px" onclick="removerDoEstoque('${i.id}')">Remover</button>
         </div>`;

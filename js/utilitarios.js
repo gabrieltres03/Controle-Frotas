@@ -144,3 +144,17 @@ function ativarMascaraNumerica(input, casasDecimais = 2) {
     input.setSelectionRange(input.value.length, input.value.length);
   });
 }
+
+// Mantém alinhado manualmente com o CACHE_NAME do sw.js a cada atualização —
+// ajuda no suporte, pra saber na hora se alguém está com versão desatualizada.
+const VERSAO_APP = "15";
+
+function mostrarVersaoApp() {
+  const selo = document.createElement("div");
+  selo.textContent = "v" + VERSAO_APP;
+  selo.style.cssText =
+    "position:fixed; bottom:4px; right:8px; font-size:10px; color:#9aa3ae; opacity:0.6; z-index:1; pointer-events:none; font-family:-apple-system,sans-serif;";
+  document.body.appendChild(selo);
+}
+
+document.addEventListener("DOMContentLoaded", mostrarVersaoApp);

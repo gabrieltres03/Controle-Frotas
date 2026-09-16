@@ -251,6 +251,7 @@ async function removerPneu(chave) {
       km_instalacao: null,
       km_acumulado: novoAcumulado,
       quantidade: 1,
+      observacoes: `Usado — ${novoAcumulado.toLocaleString("pt-BR")} km rodados`,
     });
   }
 
@@ -274,6 +275,7 @@ async function darPerda(chave) {
     km_instalacao: null,
     km_acumulado: novoAcumulado,
     quantidade: 0,
+    observacoes: `Perdido — ${novoAcumulado.toLocaleString("pt-BR")} km rodados`,
   });
   await registrarHistorico(item.id, chave, "perda");
   fecharSlot();
