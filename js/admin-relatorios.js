@@ -108,6 +108,7 @@ function montarLinhasAbastecimento() {
 function montarLinhasPneus() {
   return pneusSnapshot.map((p) => ({
     Código: p.codigo,
+    Medida: p.medida || "",
     Tipo: p.tipo_pneu || "",
     Status: p.status,
     Veículo: p.caminhao_atual || "—",
@@ -173,8 +174,8 @@ function exportarPdf() {
   doc.text("Pneus", 14, proximaY);
   doc.autoTable({
     startY: proximaY + 4,
-    head: [["Código", "Tipo", "Status", "Veículo", "KM acumulado"]],
-    body: montarLinhasPneus().map((l) => [l.Código, l.Tipo, l.Status, l.Veículo, l["KM acumulado"]]),
+    head: [["Código", "Medida", "Tipo", "Status", "Veículo", "KM acumulado"]],
+    body: montarLinhasPneus().map((l) => [l.Código, l.Medida, l.Tipo, l.Status, l.Veículo, l["KM acumulado"]]),
     styles: { fontSize: 8 },
     headStyles: { fillColor: [12, 112, 188] },
   });

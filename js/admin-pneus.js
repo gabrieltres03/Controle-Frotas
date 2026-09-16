@@ -135,7 +135,7 @@ async function abrirSlot(chave, rotulo) {
       corpo.innerHTML = `<p class="vazio">Sem pneus no estoque. Cadastre um em Estoque antes de instalar.</p>`;
     } else {
       const opcoes = comEstoque
-        .map((d) => `<option value="${d.id}">${d.data().codigo} — ${d.data().marca || "sem marca"} (${d.data().tipo_pneu || "—"}) · ${d.data().quantidade} disp.</option>`)
+        .map((d) => `<option value="${d.id}">${d.data().codigo} — ${d.data().marca || "sem marca"}${d.data().medida ? " " + d.data().medida : ""} (${d.data().tipo_pneu || "—"}) · ${d.data().quantidade} disp.</option>`)
         .join("");
       corpo.innerHTML = `
         <div class="campo">
@@ -158,7 +158,7 @@ async function abrirSlot(chave, rotulo) {
     <div class="item-lista" style="box-shadow:none; border:1.5px solid var(--borda)">
       <div class="item-lista-info">
         <span class="item-lista-titulo">${item.codigo}</span>
-        <span class="item-lista-sub">${item.marca || "sem marca"} · ${item.tipo_pneu || "—"} · ${kmEstimado(item).toLocaleString("pt-BR")} km rodados</span>
+        <span class="item-lista-sub">${item.marca || "sem marca"}${item.medida ? " · " + item.medida : ""} · ${item.tipo_pneu || "—"} · ${kmEstimado(item).toLocaleString("pt-BR")} km rodados</span>
       </div>
     </div>
     ${outrasOcupadas.length > 0 ? `
@@ -206,6 +206,7 @@ async function instalarPneu(chave) {
       codigo: `${item.codigo}-${gerarSufixoUnico()}`,
       codigo_base: item.codigo_base || item.codigo,
       marca: item.marca || "",
+      medida: item.medida || "",
       tipo_pneu: item.tipo_pneu || "",
       custo_unitario: item.custo_unitario || 0,
       status: "em_uso",

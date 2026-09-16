@@ -9,6 +9,7 @@ ativarMascaraNumerica(document.getElementById("campoCusto"));
 document.getElementById("campoTipo").addEventListener("change", (e) => {
   const ehPneu = e.target.value === "pneu";
   document.getElementById("blocoMarca").style.display = ehPneu ? "block" : "none";
+  document.getElementById("blocoMedida").style.display = ehPneu ? "block" : "none";
   document.getElementById("blocoRodagem").style.display = ehPneu ? "block" : "none";
 });
 
@@ -41,7 +42,7 @@ function renderizarLista() {
   container.innerHTML = filtrados
     .map((i) => {
       const detalhe = i.tipo === "pneu"
-        ? `${i.marca || "sem marca"} · ${rotuloTipoPneu(i.tipo_pneu)}${i.observacoes ? " · " + i.observacoes : ""}`
+        ? `${i.marca || "sem marca"}${i.medida ? " · " + i.medida : ""} · ${rotuloTipoPneu(i.tipo_pneu)}${i.observacoes ? " · " + i.observacoes : ""}`
         : i.observacoes || "—";
       const custo = i.custo_unitario ? ` · R$ ${Number(i.custo_unitario).toFixed(2)}/un` : "";
       return `
@@ -71,6 +72,7 @@ function abrirFormulario() {
   document.getElementById("campoQuantidade").value = 1;
   document.getElementById("campoCusto").value = "";
   document.getElementById("campoMarca").value = "";
+  document.getElementById("campoMedida").value = "";
   document.getElementById("campoObs").value = "";
   document.getElementById("folhaItem").classList.add("aberta");
 }
@@ -85,6 +87,7 @@ async function salvarItem() {
   const quantidade = Number(document.getElementById("campoQuantidade").value) || 1;
   const custoUnitario = lerNumeroBR(document.getElementById("campoCusto").value);
   const marca = document.getElementById("campoMarca").value.trim();
+  const medida = document.getElementById("campoMedida").value.trim();
   const tipoPneu = document.getElementById("campoTipoRodagem").value;
   const observacoes = document.getElementById("campoObs").value.trim();
 
@@ -107,6 +110,7 @@ async function salvarItem() {
   };
   if (tipo === "pneu") {
     dados.marca = marca;
+    dados.medida = medida;
     dados.tipo_pneu = tipoPneu;
   }
 

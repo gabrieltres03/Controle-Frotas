@@ -630,7 +630,7 @@ async function abrirSlotMotorista(chave, rotulo) {
   if (!item) {
     const disponiveis = await db.collection("itens").where("tipo", "==", "pneu").where("status", "==", "estoque").get();
     const comEstoque = disponiveis.docs.filter((d) => (d.data().quantidade ?? 1) > 0);
-    const opcoes = comEstoque.map((d) => `<option value="${d.id}">${d.data().codigo} · ${d.data().quantidade} disp.</option>`).join("");
+    const opcoes = comEstoque.map((d) => `<option value="${d.id}">${d.data().codigo}${d.data().medida ? " · " + d.data().medida : ""} · ${d.data().quantidade} disp.</option>`).join("");
     corpo.innerHTML = comEstoque.length === 0
       ? '<p class="vazio">Sem pneu disponível no estoque.</p>'
       : `<div class="campo"><label>Instalar pneu do estoque</label><select id="selectInstalarMotorista">${opcoes}</select></div>
@@ -643,13 +643,13 @@ async function abrirSlotMotorista(chave, rotulo) {
   const opcoesInversao = outrasOcupadas.map((k) => `<option value="${k}">${k} — ${itensDoCaminhao[k].codigo}</option>`).join("");
   const disponiveisEstoque = await db.collection("itens").where("tipo", "==", "pneu").where("status", "==", "estoque").get();
   const comEstoque = disponiveisEstoque.docs.filter((d) => (d.data().quantidade ?? 1) > 0);
-  const opcoesEstoque = comEstoque.map((d) => `<option value="${d.id}">${d.data().codigo} · ${d.data().quantidade} disp.</option>`).join("");
+  const opcoesEstoque = comEstoque.map((d) => `<option value="${d.id}">${d.data().codigo}${d.data().medida ? " · " + d.data().medida : ""} · ${d.data().quantidade} disp.</option>`).join("");
 
   corpo.innerHTML = `
     <div class="item-lista" style="box-shadow:none; border:1.5px solid var(--borda)">
       <div class="item-lista-info">
         <span class="item-lista-titulo">${item.codigo}</span>
-        <span class="item-lista-sub">${kmEstimado(item).toLocaleString("pt-BR")} km rodados</span>
+        <span class="item-lista-sub">${item.marca || "sem marca"}${item.medida ? " · " + item.medida : ""} · ${kmEstimado(item).toLocaleString("pt-BR")} km rodados</span>
       </div>
     </div>
     ${comEstoque.length > 0 ? `
@@ -700,6 +700,7 @@ async function instalarComoMotorista(chave) {
       codigo: `${item.codigo}-${gerarSufixoUnico()}`,
       codigo_base: item.codigo_base || item.codigo,
       marca: item.marca || "",
+      medida: item.medida || "",
       tipo_pneu: item.tipo_pneu || "",
       custo_unitario: item.custo_unitario || 0,
       status: "em_uso",
@@ -778,6 +779,7 @@ async function trocarPorEstepe(chave) {
       codigo: `${novo.codigo}-${gerarSufixoUnico()}`,
       codigo_base: novo.codigo_base || novo.codigo,
       marca: novo.marca || "",
+      medida: novo.medida || "",
       tipo_pneu: novo.tipo_pneu || "",
       custo_unitario: novo.custo_unitario || 0,
       status: "em_uso",

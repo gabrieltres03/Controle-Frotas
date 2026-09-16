@@ -147,7 +147,7 @@ function ativarMascaraNumerica(input, casasDecimais = 2) {
 
 // Mantém alinhado manualmente com o CACHE_NAME do sw.js a cada atualização —
 // ajuda no suporte, pra saber na hora se alguém está com versão desatualizada.
-const VERSAO_APP = "16";
+const VERSAO_APP = "17";
 
 function mostrarVersaoApp() {
   const selo = document.createElement("div");
